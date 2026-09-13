@@ -1,4 +1,5 @@
 import { AuthGate } from '@/components/shell/auth-gate'
+import { DemoBanner } from '@/components/shell/demo-banner'
 import { Sidebar } from '@/components/shell/sidebar'
 import { Topbar } from '@/components/shell/topbar'
 import { RoleProvider } from '@/lib/roles'
@@ -8,6 +9,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     <RoleProvider>
       <AuthGate>
         <div className="flex min-h-screen flex-col">
+          <DemoBanner />
           <Topbar />
           <div className="flex flex-1">
             <Sidebar />

@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import './globals.css'
 import { ToastProvider } from '@/components/ui/toast'
+import { SessionProvider } from '@/lib/session'
 import { TooltipProvider } from '@/components/ui/tooltip'
 
 export const metadata: Metadata = {
@@ -29,9 +30,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
       <body className="flex min-h-full flex-col">
-        <ToastProvider>
-          <TooltipProvider>{children}</TooltipProvider>
-        </ToastProvider>
+        <SessionProvider>
+          <ToastProvider>
+            <TooltipProvider>{children}</TooltipProvider>
+          </ToastProvider>
+        </SessionProvider>
       </body>
     </html>
   )

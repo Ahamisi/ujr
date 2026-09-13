@@ -17,12 +17,14 @@ import {
 import { useToast } from '@/components/ui/toast'
 import { CURRENT_JOURNAL, OTHER_JOURNALS } from '@/lib/mock-data'
 import { ROLES, useRole, usePerson, type Role } from '@/lib/roles'
+import { DEMO_ACCOUNTS, useSession } from '@/lib/session'
 import { ThemeToggle } from './theme-toggle'
 
 const JOURNALS = [CURRENT_JOURNAL, ...OTHER_JOURNALS]
 
 export function Topbar() {
   const { role, setRole } = useRole()
+  const { signIn, signOut } = useSession()
   const person = usePerson()
   const [active, setActive] = React.useState(CURRENT_JOURNAL.abbreviation)
   const [query, setQuery] = React.useState('')
@@ -39,6 +41,8 @@ export function Topbar() {
 
   function switchRole(next: Role) {
     setRole(next)
+    const account = DEMO_ACCOUNTS.find((a) => a.role === next)
+    if (account) signIn(account)
     router.push(HOME[next])
   }
 
@@ -134,7 +138,13 @@ export function Topbar() {
               </p>
             </div>
             <DropdownMenuSeparator />
-            <DropdownMenuItem variant="destructive" onSelect={() => toast('Authentication is not wired up yet')}>
+            <DropdownMenuItem
+              variant="destructive"
+              onSelect={() => {
+                signOut()
+                router.push('/sign-in')
+              }}
+            >
               Sign out
             </DropdownMenuItem>
           </DropdownMenuContent>

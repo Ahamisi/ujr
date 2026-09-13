@@ -10,9 +10,9 @@ import { ActivityStream } from '@/components/journal/activity-stream'
 import { ReviewCard } from '@/components/journal/review-card'
 import { SimilarityScore } from '@/components/journal/similarity-score'
 import { StatusBadge } from '@/components/journal/status-badge'
-import { ACTIVITY, MANUSCRIPT_DETAIL, REVIEWS, type ActivityEntry } from '@/lib/mock-manuscript'
+import { getManuscriptDetail, type ActivityEntry } from '@/lib/mock-manuscript'
 import type { ManuscriptStatus } from '@/lib/types'
-import { InviteReviewerDialog } from './invite-reviewer-dialog'
+import { InviteReviewerDialog } from '@/components/journal/invite-reviewer-dialog'
 import { RecordDecisionDialog } from './record-decision-dialog'
 
 function Property({ label, children }: { label: string; children: React.ReactNode }) {
@@ -28,18 +28,35 @@ function now() {
   return new Date().toLocaleString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
 }
 
-export function ManuscriptScreen() {
-  const m = MANUSCRIPT_DETAIL
-  const [status, setStatus] = React.useState<ManuscriptStatus>(m.status)
-  const [activity, setActivity] = React.useState<ActivityEntry[]>(ACTIVITY)
-  const [invited, setInvited] = React.useState<string[]>([])
-  const [tab, setTab] = React.useState('reviews')
+export function ManuscriptScreen({ id }: { id: string }) {
+  const data = React.useMemo(() => getManuscriptDetail(id), [id])
+  const m = data?.detail
+  const reviews = React.useMemo(() => data?.reviews ?? [], [data])
 
-  const split = new Set(REVIEWS.map((r) => r.recommendation)).size > 1
+  const [status, setStatus] = React.useState<ManuscriptStatus>(m?.status ?? 'submitted')
+  const [activity, setActivity] = React.useState<ActivityEntry[]>(data?.activity ?? [])
+  const [invited, setInvited] = React.useState<string[]>([])
+  const [tab, setTab] = React.useState(reviews.length > 0 ? 'reviews' : 'activity')
+
+  const split = new Set(reviews.map((r) => r.recommendation)).size > 1
   const decided = status !== 'decision_pending'
 
   function log(entry: Omit<ActivityEntry, 'id'>) {
     setActivity((a) => [...a, { ...entry, id: `z${a.length + 1}` }])
+  }
+
+  if (!m) {
+    return (
+      <div className="mx-auto w-full max-w-[600px] px-4 py-16 text-center md:px-6">
+        <h1 className="text-lg font-semibold">No such manuscript</h1>
+        <p className="text-muted-foreground mt-1 text-sm">
+          Reference <span className="tnum">{id}</span> is not in this journal.
+        </p>
+        <Link href="/desk" className="text-primary mt-4 inline-block text-sm hover:underline">
+          Back to the editor desk
+        </Link>
+      </div>
+    )
   }
 
   return (
@@ -80,7 +97,7 @@ export function ManuscriptScreen() {
               setTab('activity')
             }}
           />
-          {!decided && (
+          {!decided && reviews.length > 0 && (
             <RecordDecisionDialog
               onDecide={(next, label) => {
                 setStatus(next)
@@ -104,7 +121,7 @@ export function ManuscriptScreen() {
             <TabsTrigger value="reviews">
               Reviews
               <span className="bg-muted text-muted-foreground tnum rounded px-1.5 py-0.5 text-[11px]">
-                {REVIEWS.length}
+                {reviews.length}
               </span>
             </TabsTrigger>
             <TabsTrigger value="manuscript">Manuscript</TabsTrigger>
@@ -128,11 +145,20 @@ export function ManuscriptScreen() {
                 </p>
               </div>
             )}
-            <div className="grid gap-4 xl:grid-cols-2">
-              {REVIEWS.map((r) => (
-                <ReviewCard key={r.id} review={r} />
-              ))}
-            </div>
+            {reviews.length === 0 ? (
+              <div className="bg-card rounded-lg border px-4 py-12 text-center">
+                <p className="text-sm font-medium">No reviews yet</p>
+                <p className="text-muted-foreground mt-1 text-sm">
+                  Invite a reviewer to get this moving. Reports appear here as they are filed.
+                </p>
+              </div>
+            ) : (
+              <div className="grid gap-4 xl:grid-cols-2">
+                {reviews.map((r) => (
+                  <ReviewCard key={r.id} review={r} />
+                ))}
+              </div>
+            )}
           </TabsContent>
 
           <TabsContent value="manuscript" className="flex flex-col gap-4">
@@ -171,7 +197,7 @@ export function ManuscriptScreen() {
               <Property label="Submitted">{m.submittedAt}</Property>
               <Property label="Reviews required">
                 <span className="tnum">
-                  {REVIEWS.length}/{m.reviewsRequired}
+                  {reviews.length}/{m.reviewsRequired}
                 </span>
               </Property>
               {invited.length > 0 && (

@@ -1,9 +1,9 @@
 import type { Metadata } from 'next'
-import { MANUSCRIPT_DETAIL } from '@/lib/mock-manuscript'
 import { ManuscriptScreen } from './manuscript-screen'
 
-export const metadata: Metadata = { title: MANUSCRIPT_DETAIL.reference }
+export const metadata: Metadata = { title: 'Manuscript' }
 
-export default function ManuscriptPage() {
-  return <ManuscriptScreen />
+export default async function ManuscriptPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
+  return <ManuscriptScreen id={id} />
 }

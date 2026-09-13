@@ -23,8 +23,26 @@ function rate(r: ReviewerRecord) {
   return r.invited === 0 ? null : Math.round((r.completed / r.invited) * 100)
 }
 
-export function InviteReviewerDialog({ onInvite }: { onInvite: (name: string) => void }) {
-  const [open, setOpen] = React.useState(false)
+export function InviteReviewerDialog({
+  onInvite,
+  open: controlledOpen,
+  onOpenChange,
+  subject,
+}: {
+  onInvite: (name: string) => void
+  /** Controlled mode: no trigger is rendered, the caller owns the open state. */
+  open?: boolean
+  onOpenChange?: (open: boolean) => void
+  /** Manuscript reference, when invited from a list rather than its own page. */
+  subject?: string
+}) {
+  const controlled = controlledOpen !== undefined
+  const [uncontrolledOpen, setUncontrolledOpen] = React.useState(false)
+  const open = controlled ? controlledOpen : uncontrolledOpen
+  const setOpen = React.useCallback(
+    (v: boolean) => (controlled ? onOpenChange?.(v) : setUncontrolledOpen(v)),
+    [controlled, onOpenChange],
+  )
   const [query, setQuery] = React.useState('')
   const [picked, setPicked] = React.useState<string | null>(null)
   const toast = useToast()
@@ -53,18 +71,20 @@ export function InviteReviewerDialog({ onInvite }: { onInvite: (name: string) =>
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button variant="outline" size="sm">
-          <UserPlus />
-          Invite a reviewer
-        </Button>
-      </DialogTrigger>
+      {!controlled && (
+        <DialogTrigger asChild>
+          <Button variant="outline" size="sm">
+            <UserPlus />
+            Invite a reviewer
+          </Button>
+        </DialogTrigger>
+      )}
       <DialogContent className="max-w-xl">
         <DialogHeader>
           <DialogTitle>Invite a reviewer</DialogTitle>
           <DialogDescription>
-            They receive a link that opens the anonymised manuscript without an account. The invitation expires in
-            7 days and a replacement is then suggested.
+            {subject ? `${subject}. ` : ''}They receive a link that opens the anonymised manuscript without an
+            account. The invitation expires in 7 days and a replacement is then suggested.
           </DialogDescription>
         </DialogHeader>
 

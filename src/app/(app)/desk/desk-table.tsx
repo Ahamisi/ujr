@@ -16,6 +16,7 @@ import {
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useToast } from '@/components/ui/toast'
+import { InviteReviewerDialog } from '@/components/journal/invite-reviewer-dialog'
 import { ReviewerTrack } from '@/components/journal/reviewer-track'
 import { SimilarityScore } from '@/components/journal/similarity-score'
 import { StatusBadge } from '@/components/journal/status-badge'
@@ -44,6 +45,8 @@ export function DeskTable({ manuscripts: initial }: { manuscripts: ManuscriptRow
   const [manuscripts, setManuscripts] = React.useState(initial)
   const router = useRouter()
   const toast = useToast()
+  /* Radix needs the dialog outside the menu, so the row being acted on is state. */
+  const [inviteFor, setInviteFor] = React.useState<ManuscriptRow | null>(null)
 
   const counts = React.useMemo(
     () => Object.fromEntries(VIEWS.map((v) => [v.id, manuscripts.filter(v.match).length])) as Record<View, number>,
@@ -155,7 +158,7 @@ export function DeskTable({ manuscripts: initial }: { manuscripts: ManuscriptRow
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end" className="w-52">
-                        <DropdownMenuItem onSelect={() => router.push(`/manuscripts/${m.id}`)}>
+                        <DropdownMenuItem onSelect={() => setInviteFor(m)}>
                           <UserPlus className="size-4" />
                           Invite a reviewer
                         </DropdownMenuItem>
@@ -178,7 +181,10 @@ export function DeskTable({ manuscripts: initial }: { manuscripts: ManuscriptRow
                           Send a reminder
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem onSelect={() => router.push(`/manuscripts/${m.id}`)}>
+                        <DropdownMenuItem
+                          onSelect={() => router.push(`/manuscripts/${m.id}`)}
+                          title="Opens the manuscript — a decision needs the reviews in front of you"
+                        >
                           Record a decision
                         </DropdownMenuItem>
                         <DropdownMenuItem
@@ -210,6 +216,38 @@ export function DeskTable({ manuscripts: initial }: { manuscripts: ManuscriptRow
           </div>
         )}
       </div>
+
+      <InviteReviewerDialog
+        open={inviteFor !== null}
+        onOpenChange={(open) => !open && setInviteFor(null)}
+        subject={inviteFor?.reference}
+        onInvite={(name) => {
+          const target = inviteFor
+          void name
+          if (!target) return
+          setManuscripts((list) =>
+            list.map((x) =>
+              x.id === target.id
+                ? {
+                    ...x,
+                    status: x.status === 'reviewer_search' ? ('under_review' as const) : x.status,
+                    reviewers: [
+                      ...x.reviewers,
+                      {
+                        id: `inv-${Date.now()}`,
+                        // Blinded label in the list; the real name lives on the assignment row.
+                        displayName: `Reviewer ${x.reviewers.length + 1}`,
+                        status: 'invited' as const,
+                        dueAt: '2026-10-12',
+                      },
+                    ],
+                  }
+                : x,
+            ),
+          )
+          setInviteFor(null)
+        }}
+      />
     </div>
   )
 }

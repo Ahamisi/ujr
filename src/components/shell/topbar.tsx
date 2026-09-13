@@ -15,18 +15,32 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { useToast } from '@/components/ui/toast'
-import { CURRENT_JOURNAL, CURRENT_USER, OTHER_JOURNALS } from '@/lib/mock-data'
+import { CURRENT_JOURNAL, OTHER_JOURNALS } from '@/lib/mock-data'
+import { ROLES, useRole, usePerson, type Role } from '@/lib/roles'
 import { ThemeToggle } from './theme-toggle'
 
 const JOURNALS = [CURRENT_JOURNAL, ...OTHER_JOURNALS]
 
 export function Topbar() {
+  const { role, setRole } = useRole()
+  const person = usePerson()
   const [active, setActive] = React.useState(CURRENT_JOURNAL.abbreviation)
   const [query, setQuery] = React.useState('')
   const router = useRouter()
   const toast = useToast()
 
   const journal = JOURNALS.find((j) => j.abbreviation === active) ?? CURRENT_JOURNAL
+
+  const HOME: Record<Role, string> = {
+    editor: '/desk',
+    author: '/my-submissions',
+    reviewer: '/my-reviews',
+  }
+
+  function switchRole(next: Role) {
+    setRole(next)
+    router.push(HOME[next])
+  }
 
   function search(e: React.FormEvent) {
     e.preventDefault()
@@ -90,22 +104,35 @@ export function Topbar() {
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="h-9 gap-2 px-2">
               <Avatar>
-                <AvatarFallback>{CURRENT_USER.initials}</AvatarFallback>
+                <AvatarFallback>{person.initials}</AvatarFallback>
               </Avatar>
-              <span className="hidden text-sm lg:inline">{CURRENT_USER.name}</span>
+              <span className="hidden text-sm lg:inline">{person.person}</span>
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-64">
-            <DropdownMenuLabel>Signed in as</DropdownMenuLabel>
-            <div className="px-2 pb-1.5">
-              <p className="text-sm font-medium">{CURRENT_USER.name}</p>
-              <p className="text-muted-foreground text-xs">{CURRENT_USER.role}</p>
-            </div>
+            <DropdownMenuLabel>View the product as</DropdownMenuLabel>
+            {ROLES.map((r) => (
+              <DropdownMenuItem
+                key={r.id}
+                className="flex-col items-start gap-0.5"
+                onSelect={() => switchRole(r.id)}
+              >
+                <span className="flex w-full items-center gap-2 font-medium">
+                  {r.label}
+                  {r.id === role && <span className="text-muted-foreground ml-auto text-xs">current</span>}
+                </span>
+                <span className="text-muted-foreground text-xs">
+                  {r.person} · {r.context}
+                </span>
+              </DropdownMenuItem>
+            ))}
             <DropdownMenuSeparator />
-            <DropdownMenuItem onSelect={() => router.push('/reviewers')}>Profile and expertise</DropdownMenuItem>
-            <DropdownMenuItem onSelect={() => router.push('/review/demo-token')}>
-              Open the reviewer view
-            </DropdownMenuItem>
+            <div className="px-2 py-1.5">
+              <p className="text-muted-foreground text-[11px] leading-relaxed">
+                A demo shortcut. In production this is three different sign-ins, and the permission model is
+                enforced on the server.
+              </p>
+            </div>
             <DropdownMenuSeparator />
             <DropdownMenuItem variant="destructive" onSelect={() => toast('Authentication is not wired up yet')}>
               Sign out

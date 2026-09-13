@@ -17,12 +17,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" className="h-full antialiased" suppressHydrationWarning>
       <head>
         {/*
-          Applied before first paint so a dark-mode user never sees a white flash.
-          Wrapped because storage throws in private windows.
+          Light is the default. Dark is opt-in only — an OS preference does not
+          flip a journal's editorial interface without being asked. Applied before
+          first paint so a dark-mode user never sees a white flash. Wrapped
+          because storage throws in private windows.
         */}
         <script
           dangerouslySetInnerHTML={{
-            __html: `(function(){try{var s=localStorage.getItem('ujer-theme');var d=s?s==='dark':window.matchMedia('(prefers-color-scheme: dark)').matches;if(d)document.documentElement.classList.add('dark')}catch(e){}})()`,
+            __html: `(function(){try{var s=localStorage.getItem('ujer-theme');if(s==='dark')document.documentElement.classList.add('dark')}catch(e){}})()`,
           }}
         />
       </head>

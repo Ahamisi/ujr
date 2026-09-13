@@ -1,3 +1,4 @@
+import { MANUSCRIPTS } from './mock-data'
 import type { Recommendation } from './types'
 
 export interface ScoredCriterion {
@@ -119,3 +120,72 @@ export const ACTIVITY: ActivityEntry[] = [
   },
   { id: 'a10', kind: 'system', actor: 'Reviewer 2', text: 'submitted a review — recommends major revision', at: '31 Aug, 13:55', tone: 'success' },
 ]
+
+/**
+ * Resolve a manuscript by id. Only UJER-2026-0147 has a full record with reviews;
+ * every other row is rendered from what the desk already knows, so navigating to
+ * any manuscript lands on that manuscript rather than on a fixture.
+ */
+export function getManuscriptDetail(id: string) {
+  if (id === MANUSCRIPT_DETAIL.id) {
+    return { detail: MANUSCRIPT_DETAIL, reviews: REVIEWS, activity: ACTIVITY }
+  }
+
+  const row = MANUSCRIPTS.find((m) => m.id === id)
+  if (!row) return null
+
+  return {
+    detail: {
+      ...MANUSCRIPT_DETAIL,
+      id: row.id,
+      reference: row.reference,
+      title: row.title,
+      section: row.section,
+      status: row.status,
+      round: row.round,
+      submittedAt: row.submittedAt,
+      daysInStatus: row.daysInStatus,
+      similarityPercent: row.similarityPercent,
+      handlingEditor: row.handlingEditor ?? 'Unassigned',
+      abstract: 'The full text and abstract for this manuscript load from the submission record.',
+      authors: [
+        {
+          name: row.correspondingAuthor,
+          affiliation: 'University of Lagos',
+          corresponding: true,
+          orcid: null as string | null,
+        },
+      ],
+    },
+    reviews: [] as ReviewDetail[],
+    activity: [
+      {
+        id: 'a1',
+        kind: 'system' as const,
+        actor: 'System',
+        text: `received and logged as ${row.reference}`,
+        at: row.submittedAt,
+      },
+      ...row.reviewers.map((r, i) => ({
+        id: `a${i + 2}`,
+        kind: 'system' as const,
+        actor: r.displayName,
+        text:
+          r.status === 'submitted'
+            ? 'submitted a review'
+            : r.status === 'declined'
+              ? 'declined the invitation'
+              : r.status === 'expired'
+                ? 'did not answer — the invitation expired'
+                : 'was invited',
+        at: r.dueAt,
+        tone:
+          r.status === 'submitted'
+            ? ('success' as const)
+            : r.status === 'declined' || r.status === 'expired'
+              ? ('warning' as const)
+              : undefined,
+      })),
+    ] as ActivityEntry[],
+  }
+}

@@ -6,8 +6,10 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { PageHeader } from '@/components/shell/page-header'
 import type { ReviewerRecord } from '@/lib/mock-operations'
 import { cn } from '@/lib/utils'
+import { AddReviewerDialog } from './add-reviewer-dialog'
 
 /** Reliability, not volume. An editor picking a reviewer wants to know: will they file? */
 function completionRate(r: ReviewerRecord) {
@@ -21,8 +23,10 @@ function Turnaround({ days }: { days: number | null }) {
   return <span className={cn('tnum text-sm', tone)}>{days}d</span>
 }
 
-export function ReviewersTable({ reviewers }: { reviewers: ReviewerRecord[] }) {
+export function ReviewersTable({ reviewers: initial }: { reviewers: ReviewerRecord[] }) {
+  const [reviewers, setReviewers] = React.useState(initial)
   const [query, setQuery] = React.useState('')
+  const shared = reviewers.filter((r) => r.sharedPool).length
 
   const rows = React.useMemo(() => {
     const q = query.trim().toLowerCase()
@@ -38,7 +42,13 @@ export function ReviewersTable({ reviewers }: { reviewers: ReviewerRecord[] }) {
   }, [reviewers, query])
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-6">
+      <PageHeader
+        title="Reviewers"
+        description={`${reviewers.length} people, ${shared} of them available to other journals on the platform. Sorted by how reliably they file.`}
+        actions={<AddReviewerDialog onAdd={(r) => setReviewers((list) => [r, ...list])} />}
+      />
+
       <div className="flex flex-wrap items-center gap-2">
         <div className="relative min-w-[240px] flex-1">
           <Search className="text-muted-foreground pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2" />
@@ -126,8 +136,8 @@ export function ReviewersTable({ reviewers }: { reviewers: ReviewerRecord[] }) {
             <p className="text-muted-foreground mt-1 mb-3 text-sm">
               Try a broader term, or invite someone new by email.
             </p>
-            <Button size="sm" variant="outline">
-              Invite a reviewer by email
+            <Button size="sm" variant="outline" onClick={() => setQuery('')}>
+              Clear the search
             </Button>
           </div>
         )}

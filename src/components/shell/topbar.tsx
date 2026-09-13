@@ -1,3 +1,7 @@
+'use client'
+
+import * as React from 'react'
+import { useRouter } from 'next/navigation'
 import { ChevronsUpDown, Search } from 'lucide-react'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
@@ -10,10 +14,26 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { useToast } from '@/components/ui/toast'
 import { CURRENT_JOURNAL, CURRENT_USER, OTHER_JOURNALS } from '@/lib/mock-data'
 import { ThemeToggle } from './theme-toggle'
 
+const JOURNALS = [CURRENT_JOURNAL, ...OTHER_JOURNALS]
+
 export function Topbar() {
+  const [active, setActive] = React.useState(CURRENT_JOURNAL.abbreviation)
+  const [query, setQuery] = React.useState('')
+  const router = useRouter()
+  const toast = useToast()
+
+  const journal = JOURNALS.find((j) => j.abbreviation === active) ?? CURRENT_JOURNAL
+
+  function search(e: React.FormEvent) {
+    e.preventDefault()
+    const q = query.trim()
+    router.push(q ? `/manuscripts?q=${encodeURIComponent(q)}` : '/manuscripts')
+  }
+
   return (
     <header className="bg-background border-border sticky top-0 z-40 flex h-14 items-center gap-3 border-b px-4">
       {/* Tenant switcher. Present from day one because the data model is. */}
@@ -21,38 +41,48 @@ export function Topbar() {
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" className="h-9 gap-2 px-2">
             <span className="bg-primary text-primary-foreground flex size-6 items-center justify-center rounded text-[10px] font-semibold">
-              {CURRENT_JOURNAL.abbreviation.slice(0, 2)}
+              {journal.abbreviation.slice(0, 2)}
             </span>
-            <span className="hidden text-sm font-medium sm:inline">{CURRENT_JOURNAL.abbreviation}</span>
+            <span className="hidden text-sm font-medium sm:inline">{journal.abbreviation}</span>
             <ChevronsUpDown className="text-muted-foreground size-3.5" />
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="start" className="w-72">
           <DropdownMenuLabel>Journals</DropdownMenuLabel>
-          <DropdownMenuItem className="flex-col items-start gap-0.5">
-            <span className="font-medium">{CURRENT_JOURNAL.abbreviation}</span>
-            <span className="text-muted-foreground text-xs">{CURRENT_JOURNAL.name}</span>
-          </DropdownMenuItem>
-          {OTHER_JOURNALS.map((j) => (
-            <DropdownMenuItem key={j.slug} className="flex-col items-start gap-0.5">
-              <span className="font-medium">{j.abbreviation}</span>
+          {JOURNALS.map((j) => (
+            <DropdownMenuItem
+              key={j.slug}
+              className="flex-col items-start gap-0.5"
+              onSelect={() => {
+                setActive(j.abbreviation)
+                toast(`Switched to ${j.abbreviation}`)
+              }}
+            >
+              <span className="font-medium">
+                {j.abbreviation}
+                {j.abbreviation === active && <span className="text-muted-foreground ml-2 text-xs">current</span>}
+              </span>
               <span className="text-muted-foreground text-xs">{j.name}</span>
             </DropdownMenuItem>
           ))}
           <DropdownMenuSeparator />
-          <DropdownMenuItem>Provision a new journal</DropdownMenuItem>
+          <DropdownMenuItem onSelect={() => toast('Journal provisioning is not built yet')}>
+            Provision a new journal
+          </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
 
-      <div className="relative hidden max-w-sm flex-1 sm:block">
+      <form onSubmit={search} className="relative hidden max-w-sm flex-1 sm:block">
         <Search className="text-muted-foreground pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2" />
         <Input
           id="global-search"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
           placeholder="Search by reference, title or author"
           className="h-8 pl-8"
           aria-label="Search manuscripts"
         />
-      </div>
+      </form>
 
       <div className="ml-auto flex items-center gap-1">
         <ThemeToggle />
@@ -72,10 +102,14 @@ export function Topbar() {
               <p className="text-muted-foreground text-xs">{CURRENT_USER.role}</p>
             </div>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>Profile and expertise</DropdownMenuItem>
-            <DropdownMenuItem>Switch role</DropdownMenuItem>
+            <DropdownMenuItem onSelect={() => router.push('/reviewers')}>Profile and expertise</DropdownMenuItem>
+            <DropdownMenuItem onSelect={() => router.push('/review/demo-token')}>
+              Open the reviewer view
+            </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem variant="destructive">Sign out</DropdownMenuItem>
+            <DropdownMenuItem variant="destructive" onSelect={() => toast('Authentication is not wired up yet')}>
+              Sign out
+            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>

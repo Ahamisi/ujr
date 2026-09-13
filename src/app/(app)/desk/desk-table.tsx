@@ -2,6 +2,7 @@
 
 import * as React from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { AlertTriangle, MoreHorizontal, UserPlus } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -14,6 +15,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { useToast } from '@/components/ui/toast'
 import { ReviewerTrack } from '@/components/journal/reviewer-track'
 import { SimilarityScore } from '@/components/journal/similarity-score'
 import { StatusBadge } from '@/components/journal/status-badge'
@@ -37,8 +39,11 @@ const VIEWS: { id: View; label: string; match: (m: ManuscriptRow) => boolean }[]
 /** Past this many days in one state, the cell earns a colour. */
 const STALE_DAYS = 21
 
-export function DeskTable({ manuscripts }: { manuscripts: ManuscriptRow[] }) {
+export function DeskTable({ manuscripts: initial }: { manuscripts: ManuscriptRow[] }) {
   const [view, setView] = React.useState<View>('needs_you')
+  const [manuscripts, setManuscripts] = React.useState(initial)
+  const router = useRouter()
+  const toast = useToast()
 
   const counts = React.useMemo(
     () => Object.fromEntries(VIEWS.map((v) => [v.id, manuscripts.filter(v.match).length])) as Record<View, number>,
@@ -150,15 +155,43 @@ export function DeskTable({ manuscripts }: { manuscripts: ManuscriptRow[] }) {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end" className="w-52">
-                        <DropdownMenuItem>
+                        <DropdownMenuItem onSelect={() => router.push(`/manuscripts/${m.id}`)}>
                           <UserPlus className="size-4" />
                           Invite a reviewer
                         </DropdownMenuItem>
-                        <DropdownMenuItem>Assign handling editor</DropdownMenuItem>
-                        <DropdownMenuItem>Send a reminder</DropdownMenuItem>
+                        <DropdownMenuItem
+                          onSelect={() => {
+                            setManuscripts((list) =>
+                              list.map((x) =>
+                                x.id === m.id ? { ...x, handlingEditor: 'A. Okonkwo' } : x,
+                              ),
+                            )
+                            toast(`${m.reference} assigned to you`)
+                          }}
+                        >
+                          Assign handling editor
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          disabled={m.reviewers.length === 0}
+                          onSelect={() => toast(`Reminder sent to ${m.reviewers.length} reviewer(s) on ${m.reference}`)}
+                        >
+                          Send a reminder
+                        </DropdownMenuItem>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem>Record a decision</DropdownMenuItem>
-                        <DropdownMenuItem variant="destructive">Desk reject</DropdownMenuItem>
+                        <DropdownMenuItem onSelect={() => router.push(`/manuscripts/${m.id}`)}>
+                          Record a decision
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          variant="destructive"
+                          onSelect={() => {
+                            setManuscripts((list) =>
+                              list.map((x) => (x.id === m.id ? { ...x, status: 'desk_rejected' as const } : x)),
+                            )
+                            toast(`${m.reference} desk rejected — the author has been told`)
+                          }}
+                        >
+                          Desk reject
+                        </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </TableCell>

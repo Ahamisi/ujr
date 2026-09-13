@@ -5,14 +5,20 @@ import { ManuscriptsTable } from './manuscripts-table'
 
 export const metadata: Metadata = { title: 'All manuscripts' }
 
-export default function ManuscriptsPage() {
+export default async function ManuscriptsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string }>
+}) {
+  const { q } = await searchParams
+
   return (
     <div className="mx-auto flex w-full max-w-[1400px] flex-col gap-6 px-4 py-6 md:px-6">
       <PageHeader
         title="All manuscripts"
         description="Every submission in this journal, whatever its state and whoever is handling it."
       />
-      <ManuscriptsTable manuscripts={MANUSCRIPTS} />
+      <ManuscriptsTable manuscripts={MANUSCRIPTS} initialQuery={q ?? ''} />
     </div>
   )
 }

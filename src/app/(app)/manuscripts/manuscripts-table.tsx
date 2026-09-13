@@ -12,8 +12,14 @@ import { StatusBadge } from '@/components/journal/status-badge'
 import { STATUS_META } from '@/lib/manuscript-status'
 import type { ManuscriptRow, ManuscriptStatus } from '@/lib/types'
 
-export function ManuscriptsTable({ manuscripts }: { manuscripts: ManuscriptRow[] }) {
-  const [query, setQuery] = React.useState('')
+export function ManuscriptsTable({
+  manuscripts,
+  initialQuery = '',
+}: {
+  manuscripts: ManuscriptRow[]
+  initialQuery?: string
+}) {
+  const [query, setQuery] = React.useState(initialQuery)
   const [status, setStatus] = React.useState<'all' | ManuscriptStatus>('all')
   const [section, setSection] = React.useState('all')
 

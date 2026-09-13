@@ -5,21 +5,15 @@ import { Moon, Sun } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
 export function ThemeToggle() {
-  const [dark, setDark] = React.useState(false)
-
-  React.useEffect(() => {
-    const stored = (() => {
-      try {
-        return localStorage.getItem('ujer-theme')
-      } catch {
-        return null
-      }
-    })()
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
-    const next = stored ? stored === 'dark' : prefersDark
-    setDark(next)
-    document.documentElement.classList.toggle('dark', next)
-  }, [])
+  /*
+   * The inline script in the root layout applies the class before first paint,
+   * so the DOM is the source of truth here — no effect needed to sync it.
+   * The server renders the light icon; suppressHydrationWarning covers the
+   * one-frame difference for a viewer whose stored choice is dark.
+   */
+  const [dark, setDark] = React.useState(
+    () => typeof document !== 'undefined' && document.documentElement.classList.contains('dark'),
+  )
 
   function toggle() {
     const next = !dark
@@ -33,7 +27,13 @@ export function ThemeToggle() {
   }
 
   return (
-    <Button variant="ghost" size="icon-sm" onClick={toggle} aria-label="Toggle dark mode">
+    <Button
+      variant="ghost"
+      size="icon-sm"
+      onClick={toggle}
+      aria-label="Toggle dark mode"
+      suppressHydrationWarning
+    >
       {dark ? <Moon className="size-4" /> : <Sun className="size-4" />}
     </Button>
   )

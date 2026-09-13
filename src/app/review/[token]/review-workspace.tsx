@@ -36,12 +36,17 @@ export function ReviewWorkspace({ token }: { token: string }) {
   const [stage, setStage] = React.useState<Stage>('invitation')
   const [answers, setAnswers] = React.useState<Answers>({})
   const [save, setSave] = React.useState<SaveState>('idle')
-  const [online, setOnline] = React.useState(true)
+  const [online, setOnline] = React.useState(() => (typeof navigator === 'undefined' ? true : navigator.onLine))
   const [declineReason, setDeclineReason] = React.useState('expertise')
   const [suggestion, setSuggestion] = React.useState('')
   const [restored, setRestored] = React.useState(false)
 
-  /* Restore any draft this browser holds. Storage throws in private windows. */
+  /*
+   * Restore any draft this browser holds. This genuinely has to run after mount:
+   * the server has no access to the device's storage, so a lazy initialiser would
+   * render a different tree on each side.
+   */
+  /* eslint-disable react-hooks/set-state-in-effect */
   React.useEffect(() => {
     try {
       const raw = localStorage.getItem(storageKey)
@@ -57,10 +62,10 @@ export function ReviewWorkspace({ token }: { token: string }) {
       /* no draft available — the form still works, it just will not persist */
     }
   }, [storageKey])
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   React.useEffect(() => {
     const update = () => setOnline(navigator.onLine)
-    update()
     window.addEventListener('online', update)
     window.addEventListener('offline', update)
     return () => {
@@ -73,7 +78,6 @@ export function ReviewWorkspace({ token }: { token: string }) {
      server when the connection returns; localStorage is the same contract. */
   React.useEffect(() => {
     if (stage !== 'reviewing' || Object.keys(answers).length === 0) return
-    setSave('saving')
     const t = setTimeout(() => {
       try {
         localStorage.setItem(storageKey, JSON.stringify({ answers, stage }))
@@ -93,6 +97,7 @@ export function ReviewWorkspace({ token }: { token: string }) {
 
   function set(id: string, value: string | number) {
     setAnswers((a) => ({ ...a, [id]: value }))
+    setSave('saving')
   }
 
   function submit() {

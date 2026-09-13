@@ -161,3 +161,35 @@
     font-variant-numeric: tabular-nums;
   }
 }
+
+/*
+  Chart palette. Separate from the UI accent by design — a series colour must
+  never be mistaken for an interactive affordance, or for a status.
+  Validated with the dataviz validator against this app's own surfaces
+  (#ffffff light card, #141d1a dark card): all checks pass in both modes.
+*/
+.viz-root {
+  --series-1: #2a78d6; /* submissions */
+  --series-2: #eb6834; /* decisions */
+
+  /* Ordinal ramp, favourable → unfavourable. Monotone lightness, one hue. */
+  --ord-1: #86b6ef;
+  --ord-2: #5598e7;
+  --ord-3: #2a78d6;
+  --ord-4: #1c5cab;
+  --ord-5: #104281;
+
+  --grid: var(--rule, #e1e0d9);
+  --axis-ink: var(--muted-foreground);
+}
+
+.dark .viz-root {
+  --series-1: #3987e5;
+  --series-2: #d95926;
+
+  --ord-1: #9ec5f4;
+  --ord-2: #6da7ec;
+  --ord-3: #3987e5;
+  --ord-4: #256abf;
+  --ord-5: #184f95;
+}

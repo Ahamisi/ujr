@@ -94,6 +94,43 @@ export default function JournalHome() {
         </div>
       </section>
 
+      {/* Three doors: publish with us, review for us, or just keep up. */}
+      <section className="mt-12 grid gap-3 sm:grid-cols-3">
+        {[
+          {
+            href: '/for-authors',
+            title: 'Submit your work',
+            body: 'Double-blind review, no submission fee, a decision in about 63 days.',
+            cta: 'Read the author guide',
+          },
+          {
+            href: '/join',
+            title: 'Review for us',
+            body: 'Tell us your areas and how often you can help. Decline anything, without explanation.',
+            cta: 'Join the reviewer pool',
+          },
+          {
+            href: '/alerts',
+            title: 'Keep up',
+            body: 'The table of contents when an issue publishes, or only the sections you care about.',
+            cta: 'Get email alerts',
+          },
+        ].map((c) => (
+          <Link
+            key={c.href}
+            href={c.href}
+            className="bg-card hover:border-primary/40 focus-visible:ring-ring group flex flex-col rounded-lg border p-5 transition-colors focus-visible:ring-2 focus-visible:outline-none"
+          >
+            <h3 className="font-medium">{c.title}</h3>
+            <p className="text-muted-foreground mt-1.5 flex-1 text-sm leading-relaxed">{c.body}</p>
+            <span className="text-primary mt-3 inline-flex items-center gap-1 text-sm font-medium">
+              {c.cta}
+              <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-0.5" />
+            </span>
+          </Link>
+        ))}
+      </section>
+
       <div className="mt-12 grid gap-10 lg:grid-cols-[minmax(0,1fr)_300px]">
         <section>
           <div className="flex flex-wrap items-baseline justify-between gap-2">
@@ -144,10 +181,10 @@ export default function JournalHome() {
               days.
             </p>
             <Link
-              href="/sign-in"
+              href="/for-authors"
               className="text-primary mt-3 inline-flex items-center gap-1 text-sm font-medium hover:underline"
             >
-              Submit a manuscript
+              Author guidelines
               <ArrowRight className="size-3.5" />
             </Link>
           </section>

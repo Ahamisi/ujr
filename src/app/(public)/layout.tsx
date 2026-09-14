@@ -7,6 +7,8 @@ const LINKS = [
   { href: '/', label: 'Home' },
   { href: '/archive', label: 'Archive' },
   { href: '/search', label: 'Search' },
+  { href: '/for-authors', label: 'For authors' },
+  { href: '/join', label: 'Review for us' },
 ]
 
 export default function PublicLayout({ children }: { children: React.ReactNode }) {

@@ -4,104 +4,122 @@
 @custom-variant dark (&:is(.dark *));
 
 /*
-  Editorial palette. Deep teal carries every interactive affordance; the
-  neutrals are biased a few degrees toward it so nothing reads as stock grey.
-  Semantic colours (success / warning / danger) are deliberately separate from
-  the accent, because a manuscript's state must never be confused with a button.
+  Paper and ink.
+
+  This is a journal, so the model is printed matter, not a SaaS dashboard.
+  Three consequences run through everything below:
+
+  1. The page is paper. Panels do not sit on it as tinted cards — they are
+     divided by hairline rules, the way a printed table or a masthead is.
+     Fill and shadow are reserved for things that genuinely float: menus,
+     dialogs, tooltips.
+  2. Corners are nearly square. 2px, not 8px. Technical documents do not
+     have rounded corners.
+  3. Serif carries the content, grotesque carries the machinery. A manuscript
+     title is the product; a button label is plumbing. They should not be set
+     in the same typeface.
 */
 
 :root {
-  --radius: 0.5rem;
+  --radius: 0.125rem;
 
-  --background: oklch(0.986 0.004 174);
-  --foreground: oklch(0.215 0.021 172);
+  /* Paper: warm, slightly yellow-biased off-white. Never pure #fff. */
+  --background: oklch(0.985 0.004 85);
+  --card: oklch(0.985 0.004 85);
+  --card-foreground: oklch(0.195 0.012 265);
+  --popover: oklch(0.995 0.002 85);
+  --popover-foreground: oklch(0.195 0.012 265);
 
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.215 0.021 172);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.215 0.021 172);
+  /* Ink: cool near-black, so it sits against the warm paper rather than in it. */
+  --foreground: oklch(0.195 0.012 265);
 
-  --primary: oklch(0.452 0.076 187);
-  --primary-foreground: oklch(0.99 0.004 174);
+  /* Deep ink blue. Institutional, printed, not a highlighter. */
+  --primary: oklch(0.375 0.093 263);
+  --primary-foreground: oklch(0.985 0.004 85);
 
-  --secondary: oklch(0.955 0.007 176);
-  --secondary-foreground: oklch(0.30 0.026 174);
+  --secondary: oklch(0.945 0.006 85);
+  --secondary-foreground: oklch(0.32 0.014 265);
 
-  --muted: oklch(0.955 0.007 176);
-  --muted-foreground: oklch(0.522 0.016 174);
+  --muted: oklch(0.955 0.005 85);
+  --muted-foreground: oklch(0.505 0.014 265);
 
-  --accent: oklch(0.938 0.021 180);
-  --accent-foreground: oklch(0.30 0.040 184);
+  --accent: oklch(0.935 0.017 263);
+  --accent-foreground: oklch(0.30 0.055 263);
 
-  --destructive: oklch(0.524 0.172 27);
-  --destructive-foreground: oklch(0.99 0.004 174);
+  /* Semantics borrowed from print: oxide red, ochre, forest. */
+  --destructive: oklch(0.478 0.168 28);
+  --destructive-foreground: oklch(0.985 0.004 85);
 
-  --success: oklch(0.508 0.104 152);
-  --success-foreground: oklch(0.99 0.004 174);
-  --success-muted: oklch(0.936 0.033 152);
+  --success: oklch(0.455 0.092 148);
+  --success-foreground: oklch(0.985 0.004 85);
+  --success-muted: oklch(0.935 0.032 148);
 
-  --warning: oklch(0.588 0.122 62);
-  --warning-foreground: oklch(0.99 0.004 174);
-  --warning-muted: oklch(0.945 0.043 76);
+  --warning: oklch(0.545 0.107 66);
+  --warning-foreground: oklch(0.985 0.004 85);
+  --warning-muted: oklch(0.945 0.040 78);
 
-  --info: oklch(0.512 0.086 240);
-  --info-muted: oklch(0.940 0.028 240);
+  --info: oklch(0.455 0.082 254);
+  --info-muted: oklch(0.938 0.026 254);
 
-  --border: oklch(0.898 0.008 176);
-  --input: oklch(0.898 0.008 176);
-  --ring: oklch(0.452 0.076 187);
+  /* One hairline weight everywhere. Rules do the work cards used to. */
+  --border: oklch(0.885 0.006 85);
+  --rule-strong: oklch(0.42 0.012 265);
+  --input: oklch(0.855 0.007 85);
+  --ring: oklch(0.375 0.093 263);
 
-  --sidebar: oklch(0.968 0.006 176);
-  --sidebar-foreground: oklch(0.265 0.021 172);
-  --sidebar-border: oklch(0.898 0.008 176);
-  --sidebar-accent: oklch(0.925 0.020 180);
-  --sidebar-accent-foreground: oklch(0.28 0.040 184);
+  --sidebar: oklch(0.965 0.005 85);
+  --sidebar-foreground: oklch(0.255 0.012 265);
+  --sidebar-border: oklch(0.885 0.006 85);
+  --sidebar-accent: oklch(0.915 0.020 263);
+  --sidebar-accent-foreground: oklch(0.29 0.058 263);
 }
 
 .dark {
-  --background: oklch(0.182 0.013 172);
-  --foreground: oklch(0.922 0.010 174);
+  /* Not black. Warm charcoal, like ink-heavy paper under a lamp. */
+  --background: oklch(0.175 0.008 80);
+  --card: oklch(0.175 0.008 80);
+  --card-foreground: oklch(0.915 0.006 85);
+  --popover: oklch(0.225 0.009 80);
+  --popover-foreground: oklch(0.915 0.006 85);
 
-  --card: oklch(0.222 0.015 172);
-  --card-foreground: oklch(0.922 0.010 174);
-  --popover: oklch(0.222 0.015 172);
-  --popover-foreground: oklch(0.922 0.010 174);
+  --foreground: oklch(0.915 0.006 85);
 
-  --primary: oklch(0.758 0.098 182);
-  --primary-foreground: oklch(0.192 0.030 182);
+  --primary: oklch(0.735 0.098 258);
+  --primary-foreground: oklch(0.185 0.030 262);
 
-  --secondary: oklch(0.268 0.016 172);
-  --secondary-foreground: oklch(0.900 0.012 174);
+  --secondary: oklch(0.255 0.009 80);
+  --secondary-foreground: oklch(0.895 0.006 85);
 
-  --muted: oklch(0.268 0.016 172);
-  --muted-foreground: oklch(0.672 0.016 174);
+  --muted: oklch(0.255 0.009 80);
+  --muted-foreground: oklch(0.655 0.010 85);
 
-  --accent: oklch(0.298 0.030 180);
-  --accent-foreground: oklch(0.880 0.036 182);
+  --accent: oklch(0.295 0.032 260);
+  --accent-foreground: oklch(0.865 0.040 258);
 
-  --destructive: oklch(0.636 0.158 25);
-  --destructive-foreground: oklch(0.165 0.020 25);
+  --destructive: oklch(0.635 0.158 28);
+  --destructive-foreground: oklch(0.165 0.020 28);
 
-  --success: oklch(0.712 0.104 152);
-  --success-foreground: oklch(0.175 0.030 152);
-  --success-muted: oklch(0.272 0.046 152);
+  --success: oklch(0.695 0.098 148);
+  --success-foreground: oklch(0.170 0.028 148);
+  --success-muted: oklch(0.272 0.042 148);
 
-  --warning: oklch(0.752 0.116 72);
-  --warning-foreground: oklch(0.180 0.030 60);
-  --warning-muted: oklch(0.282 0.050 66);
+  --warning: oklch(0.755 0.108 74);
+  --warning-foreground: oklch(0.180 0.028 62);
+  --warning-muted: oklch(0.288 0.048 70);
 
-  --info: oklch(0.712 0.078 238);
-  --info-muted: oklch(0.272 0.038 238);
+  --info: oklch(0.705 0.078 254);
+  --info-muted: oklch(0.272 0.036 254);
 
-  --border: oklch(0.318 0.016 172);
-  --input: oklch(0.318 0.016 172);
-  --ring: oklch(0.758 0.098 182);
+  --border: oklch(0.305 0.008 80);
+  --rule-strong: oklch(0.555 0.010 85);
+  --input: oklch(0.335 0.009 80);
+  --ring: oklch(0.735 0.098 258);
 
-  --sidebar: oklch(0.208 0.015 172);
-  --sidebar-foreground: oklch(0.878 0.012 174);
-  --sidebar-border: oklch(0.298 0.016 172);
-  --sidebar-accent: oklch(0.288 0.030 180);
-  --sidebar-accent-foreground: oklch(0.880 0.036 182);
+  --sidebar: oklch(0.198 0.008 80);
+  --sidebar-foreground: oklch(0.868 0.007 85);
+  --sidebar-border: oklch(0.295 0.008 80);
+  --sidebar-accent: oklch(0.285 0.032 260);
+  --sidebar-accent-foreground: oklch(0.865 0.040 258);
 }
 
 @theme inline {
@@ -130,6 +148,7 @@
   --color-info: var(--info);
   --color-info-muted: var(--info-muted);
   --color-border: var(--border);
+  --color-rule-strong: var(--rule-strong);
   --color-input: var(--input);
   --color-ring: var(--ring);
   --color-sidebar: var(--sidebar);
@@ -138,48 +157,74 @@
   --color-sidebar-accent: var(--sidebar-accent);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
 
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
+  --radius-sm: 1px;
+  --radius-md: 2px;
+  --radius-lg: 2px;
+  --radius-xl: 4px;
 
-  --font-sans: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-  --font-serif: 'Iowan Old Style', Georgia, 'Times New Roman', serif;
-  --font-mono: ui-monospace, 'SF Mono', Menlo, monospace;
+  --font-sans: "Archivo", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "Source Serif 4", Charter, Georgia, serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
 }
 
 @layer base {
   * {
     @apply border-border outline-ring/50;
   }
+
   body {
-    @apply bg-background text-foreground;
-    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    @apply bg-background text-foreground font-sans;
+    font-size: 14px;
+    line-height: 1.55;
+    /* Archivo runs a touch wide at UI sizes; pull it in slightly. */
+    letter-spacing: -0.005em;
   }
-  /* Manuscript references, scores, dates: anything that lines up in a column. */
+
+  /* Content is serif. Chrome is not. */
+  h1, h2, h3 {
+    @apply font-serif;
+    letter-spacing: -0.014em;
+    font-weight: 600;
+  }
+
+  /* Identifiers are machine strings — set them like machine strings. */
+  .ref {
+    @apply font-mono;
+    font-size: 0.86em;
+    letter-spacing: -0.01em;
+  }
+
   .tnum {
     font-variant-numeric: tabular-nums;
+  }
+
+  /* A small-caps rule label, the printed-matter alternative to a card header. */
+  .rule-label {
+    @apply text-muted-foreground font-sans;
+    font-size: 10.5px;
+    font-weight: 600;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
   }
 }
 
 /*
   Chart palette. Separate from the UI accent by design — a series colour must
-  never be mistaken for an interactive affordance, or for a status.
-  Validated with the dataviz validator against this app's own surfaces
-  (#ffffff light card, #141d1a dark card): all checks pass in both modes.
+  never be mistaken for an interactive affordance, or for a status. Validated
+  for colour-blind separation, lightness band and contrast against this app's
+  own paper and charcoal surfaces. Re-validate if the surfaces change.
 */
 .viz-root {
-  --series-1: #2a78d6; /* submissions */
-  --series-2: #eb6834; /* decisions */
+  --series-1: #2a78d6;
+  --series-2: #eb6834;
 
-  /* Ordinal ramp, favourable → unfavourable. Monotone lightness, one hue. */
   --ord-1: #86b6ef;
   --ord-2: #5598e7;
   --ord-3: #2a78d6;
   --ord-4: #1c5cab;
   --ord-5: #104281;
 
-  --grid: var(--rule, #e1e0d9);
+  --grid: var(--border);
   --axis-ink: var(--muted-foreground);
 }
 

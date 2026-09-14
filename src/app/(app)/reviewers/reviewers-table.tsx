@@ -66,7 +66,7 @@ export function ReviewersTable({ reviewers: initial }: { reviewers: ReviewerReco
         </span>
       </div>
 
-      <div className="bg-card overflow-hidden rounded-lg border">
+      <div className="overflow-hidden border-y">
         <Table>
           <TableHeader>
             <TableRow className="hover:bg-transparent">

@@ -62,7 +62,7 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
       </p>
 
       {isIssn && (
-        <section className="bg-card mt-8 rounded-lg border p-5">
+        <section className="bg-card mt-8 border p-5">
           <div className="flex items-start gap-3">
             <BookMarked className="text-primary mt-0.5 size-5 shrink-0" />
             <div className="min-w-0">
@@ -101,7 +101,7 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
           </div>
 
           {results.length === 0 && (
-            <div className="mt-4 rounded-lg border border-dashed px-6 py-12 text-center">
+            <div className="mt-4 border border-dashed px-6 py-12 text-center">
               <p className="text-sm font-medium">Nothing matched</p>
               <p className="text-muted-foreground mx-auto mt-1 max-w-prose text-sm leading-relaxed">
                 Try a broader term, an author surname, or paste the DOI if you have it. The archive only holds
@@ -114,7 +114,7 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
 
       {!query && (
         <section className="mt-8">
-          <h2 className="text-muted-foreground text-[11px] font-medium tracking-wider uppercase">
+          <h2 className="rule-label">
             Try one of these
           </h2>
           <div className="mt-3 flex flex-wrap gap-2">

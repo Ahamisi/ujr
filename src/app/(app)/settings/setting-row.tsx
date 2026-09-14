@@ -29,8 +29,8 @@ export function SettingRow({
 export function SettingGroup({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section className="flex flex-col gap-2">
-      <h2 className="text-muted-foreground text-[11px] font-medium tracking-wider uppercase">{title}</h2>
-      <div className="bg-card rounded-lg border">{children}</div>
+      <h2 className="rule-label">{title}</h2>
+      <div className="border">{children}</div>
     </section>
   )
 }

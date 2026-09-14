@@ -112,7 +112,7 @@ export function InviteReviewerDialog({
                     onClick={() => setPicked(r.id)}
                     aria-pressed={active}
                     className={cn(
-                      'focus-visible:ring-ring w-full rounded-md border px-3 py-2.5 text-left transition-colors focus-visible:ring-2 focus-visible:outline-none',
+                      'focus-visible:ring-ring w-full border px-3 py-2.5 text-left transition-colors focus-visible:ring-2 focus-visible:outline-none',
                       active ? 'border-primary bg-accent' : 'border-transparent hover:bg-muted',
                     )}
                   >

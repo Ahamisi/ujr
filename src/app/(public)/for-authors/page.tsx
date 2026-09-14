@@ -57,7 +57,7 @@ export default function ForAuthorsPage() {
         </ul>
       </section>
 
-      <section className="bg-card mt-10 rounded-lg border p-5">
+      <section className="bg-card mt-10 border p-5">
         <h2 className="text-sm font-medium">Charges</h2>
         <p className="text-muted-foreground mt-1.5 text-sm leading-relaxed">
           There is no submission fee. Any article charge is raised only after acceptance, never before — and waivers

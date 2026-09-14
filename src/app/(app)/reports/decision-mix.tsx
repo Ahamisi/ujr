@@ -16,7 +16,7 @@ export function DecisionMix() {
   const max = Math.max(...DECISION_MIX.map((d) => d.count))
 
   return (
-    <figure className="viz-root bg-card m-0 rounded-lg border">
+    <figure className="viz-root m-0 border">
       <figcaption className="flex flex-wrap items-baseline gap-x-4 gap-y-1 border-b px-5 py-3.5">
         <h3 className="text-sm font-medium">Decision mix</h3>
         <p className="text-muted-foreground text-xs">

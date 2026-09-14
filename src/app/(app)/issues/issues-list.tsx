@@ -41,14 +41,14 @@ export function IssuesList() {
       />
 
       <section className="flex flex-col gap-3">
-        <h2 className="text-muted-foreground text-[11px] font-medium tracking-wider uppercase">In progress</h2>
+        <h2 className="rule-label">In progress</h2>
         {unpublished.map((i) => (
           <IssueRow key={i.id} issue={i} />
         ))}
       </section>
 
       <section className="flex flex-col gap-3">
-        <h2 className="text-muted-foreground text-[11px] font-medium tracking-wider uppercase">Published</h2>
+        <h2 className="rule-label">Published</h2>
         {published.map((i) => (
           <IssueRow key={i.id} issue={i} />
         ))}
@@ -60,7 +60,7 @@ export function IssuesList() {
 function IssueRow({ issue }: { issue: IssueRecord }) {
   const meta = STATUS[issue.status]
   return (
-    <article className="bg-card flex flex-wrap items-center gap-x-4 gap-y-2 rounded-lg border px-4 py-3">
+    <article className="bg-card flex flex-wrap items-center gap-x-4 gap-y-2 border px-4 py-3">
       <div className="min-w-0 flex-1">
         <p className="flex flex-wrap items-center gap-2">
           <span className="tnum font-medium">

@@ -36,7 +36,7 @@ export default async function AuthorSubmissionPage({ params }: { params: Promise
         </Badge>
       </div>
 
-      <div className="bg-accent/50 mt-5 rounded-lg border px-4 py-3">
+      <div className="bg-accent/50 mt-5 border px-4 py-3">
         <p className="text-sm leading-relaxed">{s.whatHappensNext}</p>
         {s.actionRequired && (
           <Button size="sm" className="mt-3">
@@ -57,7 +57,7 @@ export default async function AuthorSubmissionPage({ params }: { params: Promise
 
           <div className="mt-4 flex flex-col gap-4">
             {AUTHOR_VISIBLE_REVIEWS.map((r) => (
-              <article key={r.id} className="bg-card rounded-lg border">
+              <article key={r.id} className="border">
                 <header className="border-b px-4 py-2.5">
                   <h3 className="text-sm font-medium">{r.label}</h3>
                 </header>

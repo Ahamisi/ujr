@@ -51,7 +51,7 @@ export function NotificationsList() {
             href={n.href}
             onClick={() => markRead(n.id)}
             className={cn(
-              'hover:border-primary/40 focus-visible:ring-ring block rounded-lg border px-4 py-3.5 transition-colors focus-visible:ring-2 focus-visible:outline-none',
+              'hover:border-primary/40 focus-visible:ring-ring block border px-4 py-3.5 transition-colors focus-visible:ring-2 focus-visible:outline-none',
               n.read ? 'bg-card' : 'bg-accent/30 border-primary/25',
             )}
           >
@@ -67,7 +67,7 @@ export function NotificationsList() {
         ))}
 
         {rows.length === 0 && (
-          <div className="rounded-lg border border-dashed px-6 py-14 text-center">
+          <div className="border border-dashed px-6 py-14 text-center">
             <p className="text-sm font-medium">Nothing unread</p>
             <p className="text-muted-foreground mt-1 text-sm">You are up to date.</p>
           </div>

@@ -78,7 +78,7 @@ export function DeskTable({ manuscripts: initial }: { manuscripts: ManuscriptRow
         </TabsList>
       </Tabs>
 
-      <div className="bg-card overflow-hidden rounded-lg border">
+      <div className="overflow-hidden border-y">
         <Table>
           <TableHeader>
             <TableRow className="hover:bg-transparent">
@@ -99,7 +99,7 @@ export function DeskTable({ manuscripts: initial }: { manuscripts: ManuscriptRow
                   <TableCell>
                     <Link
                       href={`/manuscripts/${m.id}`}
-                      className="tnum text-primary text-[13px] font-medium hover:underline"
+                      className="ref text-primary text-[12.5px] font-medium hover:underline"
                     >
                       {m.reference}
                     </Link>

@@ -71,7 +71,7 @@ export function AlertsForm() {
             <label
               key={t.id}
               className={cn(
-                'flex cursor-pointer items-start gap-2.5 rounded-md border px-3 py-2.5 transition-colors',
+                'flex cursor-pointer items-start gap-2.5 border px-3 py-2.5 transition-colors',
                 on ? 'border-primary bg-accent/40' : 'border-border hover:bg-muted',
               )}
             >

@@ -42,11 +42,11 @@ export default function ReportsPage() {
         description="The figures DOAJ and your editorial board will both ask for."
       />
 
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="divide-border grid border-y sm:grid-cols-2 sm:divide-x lg:grid-cols-4">
         {TILES.map((t) => (
-          <div key={t.label} className="bg-card rounded-lg border px-4 py-3.5">
+          <div key={t.label} className="px-4 py-3.5">
             <p className="flex items-baseline gap-1">
-              <span className="text-2xl font-semibold tracking-tight">{t.value}</span>
+              <span className="font-serif text-[28px] leading-none font-semibold tracking-[-0.02em]">{t.value}</span>
               <span className="text-muted-foreground text-sm">{t.unit}</span>
             </p>
             <p className="mt-0.5 text-[13px] font-medium">{t.label}</p>

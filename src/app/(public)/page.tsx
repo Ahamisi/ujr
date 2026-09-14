@@ -56,10 +56,10 @@ export default function JournalHome() {
 
       {/* Article of the day */}
       <section className="mt-12">
-        <h2 className="text-muted-foreground text-[11px] font-medium tracking-wider uppercase">
+        <h2 className="rule-label">
           Featured article
         </h2>
-        <div className="bg-card mt-3 rounded-lg border p-6">
+        <div className="bg-card mt-3 border p-6">
           <Badge variant="secondary">{featured.section}</Badge>
           <h3 className="mt-3">
             <Link
@@ -119,7 +119,7 @@ export default function JournalHome() {
           <Link
             key={c.href}
             href={c.href}
-            className="bg-card hover:border-primary/40 focus-visible:ring-ring group flex flex-col rounded-lg border p-5 transition-colors focus-visible:ring-2 focus-visible:outline-none"
+            className="hover:border-primary/40 focus-visible:ring-ring group flex flex-col border p-5 transition-colors focus-visible:ring-2 focus-visible:outline-none"
           >
             <h3 className="font-medium">{c.title}</h3>
             <p className="text-muted-foreground mt-1.5 flex-1 text-sm leading-relaxed">{c.body}</p>
@@ -134,7 +134,7 @@ export default function JournalHome() {
       <div className="mt-12 grid gap-10 lg:grid-cols-[minmax(0,1fr)_300px]">
         <section>
           <div className="flex flex-wrap items-baseline justify-between gap-2">
-            <h2 className="text-muted-foreground text-[11px] font-medium tracking-wider uppercase">
+            <h2 className="rule-label">
               Current issue
             </h2>
             <p className="text-muted-foreground tnum text-xs">
@@ -156,7 +156,7 @@ export default function JournalHome() {
 
         <aside className="flex flex-col gap-8">
           <section>
-            <h2 className="text-muted-foreground text-[11px] font-medium tracking-wider uppercase">Most read</h2>
+            <h2 className="rule-label">Most read</h2>
             <ol className="mt-3 flex flex-col gap-3">
               {mostRead.map((a, i) => (
                 <li key={a.id} className="flex gap-3">
@@ -174,7 +174,7 @@ export default function JournalHome() {
             </ol>
           </section>
 
-          <section className="bg-card rounded-lg border p-4">
+          <section className="border p-4">
             <h2 className="text-sm font-medium">For authors</h2>
             <p className="text-muted-foreground mt-1.5 text-xs leading-relaxed">
               Double-blind peer review. No charge to submit or to publish. Median time to first decision is 63

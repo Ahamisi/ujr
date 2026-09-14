@@ -105,7 +105,7 @@ export function SubmitForm() {
             type="button"
             onClick={fakeUpload}
             disabled={extracting}
-            className="border-border hover:border-primary/50 hover:bg-accent/40 focus-visible:ring-ring flex flex-col items-center gap-2 rounded-lg border border-dashed px-6 py-12 transition-colors focus-visible:ring-2 focus-visible:outline-none disabled:opacity-60"
+            className="border-border hover:border-primary/50 hover:bg-accent/40 focus-visible:ring-ring flex flex-col items-center gap-2 border border-dashed px-6 py-12 transition-colors focus-visible:ring-2 focus-visible:outline-none disabled:opacity-60"
           >
             <FileUp className="text-muted-foreground size-6" />
             <span className="text-sm font-medium">
@@ -190,7 +190,7 @@ export function SubmitForm() {
                 <label
                   key={d.id}
                   className={cn(
-                    'flex cursor-pointer items-start gap-2.5 rounded-md border px-3 py-2.5 text-sm transition-colors',
+                    'flex cursor-pointer items-start gap-2.5 border px-3 py-2.5 text-sm transition-colors',
                     on ? 'border-primary bg-accent/40' : 'border-border hover:bg-muted',
                   )}
                 >
@@ -208,7 +208,7 @@ export function SubmitForm() {
             })}
           </fieldset>
 
-          <div className="bg-card rounded-lg border p-4">
+          <div className="border p-4">
             <h3 className="flex items-center gap-2 text-sm font-medium">
               <EyeOff className="size-4" />
               What the reviewers will see

@@ -14,7 +14,7 @@ const RECOMMENDATION_VARIANT: Record<Recommendation, 'success' | 'info' | 'warni
 
 export function ReviewCard({ review }: { review: ReviewDetail }) {
   return (
-    <article className="bg-card flex flex-col rounded-lg border">
+    <article className="flex flex-col border">
       <header className="border-b px-4 py-3">
         <div className="flex flex-wrap items-center gap-2">
           <h3 className="font-medium">{review.realName}</h3>
@@ -44,7 +44,7 @@ export function ReviewCard({ review }: { review: ReviewDetail }) {
       </div>
 
       <div className="px-4 py-3">
-        <h4 className="text-muted-foreground mb-1.5 text-[11px] font-medium tracking-wider uppercase">
+        <h4 className="rule-label mb-1.5">
           To the author
         </h4>
         <p className="text-sm leading-relaxed">{review.toAuthor}</p>
@@ -53,7 +53,7 @@ export function ReviewCard({ review }: { review: ReviewDetail }) {
       {review.toEditor && (
         // Confidential block is visually fenced, not just labelled. An editor
         // assembling a decision letter must never paste this by accident.
-        <div className="bg-warning-muted/60 border-warning/40 mx-4 mb-4 rounded-md border border-dashed px-3 py-2.5">
+        <div className="bg-warning-muted/60 border-warning/40 mx-4 mb-4 border border-dashed px-3 py-2.5">
           <h4 className="text-warning mb-1.5 flex items-center gap-1.5 text-[11px] font-medium tracking-wider uppercase">
             <Lock className="size-3" />
             Confidential to the editor

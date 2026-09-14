@@ -31,7 +31,7 @@ export default function MyReviewsPage() {
               key={r.id}
               href={`/review/${r.token}`}
               className={cn(
-                'bg-card hover:border-primary/40 focus-visible:ring-ring block rounded-lg border px-4 py-3.5 transition-colors focus-visible:ring-2 focus-visible:outline-none',
+                'hover:border-primary/40 focus-visible:ring-ring block border px-4 py-3.5 transition-colors focus-visible:ring-2 focus-visible:outline-none',
                 done && 'opacity-70',
               )}
             >

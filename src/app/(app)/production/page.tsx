@@ -48,7 +48,7 @@ export default function ProductionPage() {
               </header>
 
               {items.length === 0 ? (
-                <p className="text-muted-foreground border-border rounded-lg border border-dashed px-4 py-3 text-sm">
+                <p className="text-muted-foreground border-border border border-dashed px-4 py-3 text-sm">
                   Nothing at this stage.
                 </p>
               ) : (
@@ -69,7 +69,7 @@ export default function ProductionPage() {
 function ProductionRow({ item, staleAfter }: { item: ProductionItem; staleAfter: number }) {
   const stale = item.daysInStage >= staleAfter
   return (
-    <article className="bg-card flex flex-wrap items-center gap-x-4 gap-y-1.5 rounded-lg border px-4 py-3">
+    <article className="bg-card flex flex-wrap items-center gap-x-4 gap-y-1.5 border px-4 py-3">
       <div className="min-w-0 flex-1">
         <p className="text-sm font-medium">{item.title}</p>
         <p className="text-muted-foreground mt-0.5 flex flex-wrap items-center gap-2 text-xs">

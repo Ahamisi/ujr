@@ -112,17 +112,17 @@ export function DoiRegistry() {
         }
       />
 
-      <div className="grid gap-3 sm:grid-cols-3">
+      <div className="divide-border grid border-y sm:grid-cols-3 sm:divide-x">
         {TILES.map((t) => (
-          <div key={t.label} className="bg-card rounded-lg border px-4 py-3.5">
-            <p className="tnum text-2xl font-semibold tracking-tight">{t.value}</p>
+          <div key={t.label} className="px-4 py-3.5">
+            <p className="font-serif tnum text-[28px] leading-none font-semibold tracking-[-0.02em]">{t.value}</p>
             <p className="mt-0.5 text-[13px] font-medium">{t.label}</p>
             <p className="text-muted-foreground mt-1 text-xs leading-relaxed">{t.note}</p>
           </div>
         ))}
       </div>
 
-      <div className="bg-accent/40 flex items-start gap-2.5 rounded-lg border px-3.5 py-3">
+      <div className="bg-accent/40 flex items-start gap-2.5 border px-3.5 py-3">
         <AlertTriangle className="text-primary mt-0.5 size-4 shrink-0" />
         <p className="text-sm leading-relaxed">
           <span className="font-medium">A DOI is permanent.</span>{' '}
@@ -133,7 +133,7 @@ export function DoiRegistry() {
         </p>
       </div>
 
-      <div className="bg-card overflow-hidden rounded-lg border">
+      <div className="overflow-hidden border-y">
         <Table>
           <TableHeader>
             <TableRow className="hover:bg-transparent">

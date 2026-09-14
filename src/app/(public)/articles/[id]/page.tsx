@@ -107,12 +107,12 @@ export default async function ArticlePage({ params }: { params: Promise<{ id: st
       </div>
 
       <section className="mt-8">
-        <h2 className="text-muted-foreground text-[11px] font-medium tracking-wider uppercase">Abstract</h2>
+        <h2 className="rule-label">Abstract</h2>
         <p className="mt-2 leading-relaxed">{a.abstract}</p>
       </section>
 
       <section className="mt-6">
-        <h2 className="text-muted-foreground text-[11px] font-medium tracking-wider uppercase">Keywords</h2>
+        <h2 className="rule-label">Keywords</h2>
         <div className="mt-2 flex flex-wrap gap-1.5">
           {a.keywords.map((k) => (
             <Link key={k} href={`/search?q=${encodeURIComponent(k)}`}>

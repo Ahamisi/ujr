@@ -120,10 +120,10 @@ export function TransactionsTable({ transactions: initial }: { transactions: Tra
         }
       />
 
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="divide-border grid border-y sm:grid-cols-2 sm:divide-x lg:grid-cols-4">
         {TILES.map((t) => (
-          <div key={t.label} className="bg-card rounded-lg border px-4 py-3.5">
-            <p className="tnum text-xl font-semibold tracking-tight">{t.value}</p>
+          <div key={t.label} className="px-4 py-3.5">
+            <p className="font-serif tnum text-[24px] leading-none font-semibold tracking-[-0.02em]">{t.value}</p>
             <p className="mt-0.5 text-[13px] font-medium">{t.label}</p>
             <p className="text-muted-foreground mt-1 text-xs">{t.note}</p>
           </div>
@@ -160,7 +160,7 @@ export function TransactionsTable({ transactions: initial }: { transactions: Tra
         </span>
       </div>
 
-      <div className="bg-card overflow-hidden rounded-lg border">
+      <div className="overflow-hidden border-y">
         <div className="w-full overflow-x-auto">
           <table className="w-full min-w-[760px] text-sm">
             <thead>
@@ -190,7 +190,7 @@ export function TransactionsTable({ transactions: initial }: { transactions: Tra
               {filtered.map((t) => (
                 <tr key={t.id} className="hover:bg-muted/60 border-b transition-colors last:border-b-0">
                   <td className="px-3 py-3 align-top">
-                    <p className="tnum text-[13px] font-medium">{t.reference}</p>
+                    <p className="ref text-[12.5px] font-medium">{t.reference}</p>
                     <p className="text-muted-foreground mt-0.5 max-w-xs truncate text-xs">{t.manuscriptTitle}</p>
                   </td>
                   <td className="px-3 py-3 align-top">

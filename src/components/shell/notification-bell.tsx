@@ -39,7 +39,7 @@ export function NotificationBell() {
 
       <DropdownMenuContent align="end" className="w-[22rem]">
         <div className="flex items-center justify-between px-2 py-1.5">
-          <span className="text-muted-foreground text-[11px] font-medium tracking-wider uppercase">
+          <span className="rule-label">
             Notifications
           </span>
           {unread > 0 && (

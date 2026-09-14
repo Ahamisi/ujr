@@ -135,7 +135,7 @@ export function ManuscriptScreen({ id }: { id: string }) {
 
           <TabsContent value="reviews" className="flex flex-col gap-4">
             {split && !decided && (
-              <div className="bg-warning-muted/60 border-warning/40 flex items-start gap-2.5 rounded-md border px-3.5 py-2.5">
+              <div className="bg-warning-muted/60 border-warning/40 flex items-start gap-2.5 border px-3.5 py-2.5">
                 <Scale className="text-warning mt-0.5 size-4 shrink-0" />
                 <p className="text-sm">
                   <span className="font-medium">The reviewers disagree.</span>{' '}
@@ -146,7 +146,7 @@ export function ManuscriptScreen({ id }: { id: string }) {
               </div>
             )}
             {reviews.length === 0 ? (
-              <div className="bg-card rounded-lg border px-4 py-12 text-center">
+              <div className="border px-4 py-12 text-center">
                 <p className="text-sm font-medium">No reviews yet</p>
                 <p className="text-muted-foreground mt-1 text-sm">
                   Invite a reviewer to get this moving. Reports appear here as they are filed.
@@ -162,11 +162,11 @@ export function ManuscriptScreen({ id }: { id: string }) {
           </TabsContent>
 
           <TabsContent value="manuscript" className="flex flex-col gap-4">
-            <div className="bg-card rounded-lg border p-5">
+            <div className="border p-5">
               <h2 className="mb-2 text-sm font-medium">Abstract</h2>
               <p className="max-w-prose text-sm leading-relaxed">{m.abstract}</p>
             </div>
-            <div className="bg-card rounded-lg border p-5">
+            <div className="border p-5">
               <h2 className="mb-3 text-sm font-medium">Files</h2>
               <ul className="flex flex-col gap-2">
                 {[
@@ -191,7 +191,7 @@ export function ManuscriptScreen({ id }: { id: string }) {
         </Tabs>
 
         <aside className="flex flex-col gap-4">
-          <div className="bg-card rounded-lg border p-4">
+          <div className="border p-4">
             <dl>
               <Property label="Handling editor">{m.handlingEditor}</Property>
               <Property label="Submitted">{m.submittedAt}</Property>
@@ -217,8 +217,8 @@ export function ManuscriptScreen({ id }: { id: string }) {
             </p>
           </div>
 
-          <div className="bg-card rounded-lg border p-4">
-            <h2 className="text-muted-foreground mb-2 text-[11px] font-medium tracking-wider uppercase">Authors</h2>
+          <div className="border p-4">
+            <h2 className="rule-label mb-2">Authors</h2>
             <ul className="flex flex-col gap-2.5">
               {m.authors.map((a) => (
                 <li key={a.name}>

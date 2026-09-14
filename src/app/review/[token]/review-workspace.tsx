@@ -129,8 +129,8 @@ export function ReviewWorkspace({ token }: { token: string }) {
           </Badge>
         </div>
 
-        <div className="bg-card mt-6 rounded-lg border p-5">
-          <h2 className="text-muted-foreground mb-2 text-[11px] font-medium tracking-wider uppercase">Abstract</h2>
+        <div className="bg-card mt-6 border p-5">
+          <h2 className="rule-label mb-2">Abstract</h2>
           <p className="text-sm leading-relaxed">{MS.abstract}</p>
           <p className="text-muted-foreground mt-4 flex flex-wrap gap-x-4 gap-y-1 text-xs">
             <span>{MS.section}</span>
@@ -160,7 +160,7 @@ export function ReviewWorkspace({ token }: { token: string }) {
   if (stage === 'declined') {
     return (
       <div className="mx-auto w-full max-w-xl px-4 py-10 md:px-6">
-        <h1 className="text-xl font-semibold tracking-tight">Decline this invitation</h1>
+        <h1 className="font-serif text-[26px] leading-tight font-semibold tracking-[-0.018em]">Decline this invitation</h1>
         <p className="text-muted-foreground mt-1 text-sm">
           A reason helps the editor find someone suitable faster. Nothing here reaches the authors.
         </p>
@@ -228,7 +228,7 @@ export function ReviewWorkspace({ token }: { token: string }) {
   return (
     <div className="mx-auto w-full max-w-[1200px] px-4 py-6 md:px-6">
       {!online && (
-        <div className="border-warning/40 bg-warning-muted/60 mb-4 flex items-start gap-2.5 rounded-md border px-3.5 py-2.5">
+        <div className="border-warning/40 bg-warning-muted/60 mb-4 flex items-start gap-2.5 border px-3.5 py-2.5">
           <CloudOff className="text-warning mt-0.5 size-4 shrink-0" />
           <p className="text-sm">
             <span className="font-medium">You are offline.</span>{' '}
@@ -245,7 +245,7 @@ export function ReviewWorkspace({ token }: { token: string }) {
 
       <div className="grid gap-6 lg:grid-cols-[320px_minmax(0,1fr)]">
         <aside className="flex flex-col gap-4 lg:sticky lg:top-6 lg:self-start">
-          <div className="bg-card rounded-lg border p-4">
+          <div className="border p-4">
             <p className="text-muted-foreground tnum text-xs">{MS.reference}</p>
             <h1 className="mt-1 text-sm font-semibold text-balance">{MS.title}</h1>
             <p className="text-muted-foreground mt-2 text-xs leading-relaxed">{MS.abstract}</p>
@@ -259,8 +259,8 @@ export function ReviewWorkspace({ token }: { token: string }) {
             </p>
           </div>
 
-          <div className="bg-card rounded-lg border p-4">
-            <p className="text-muted-foreground text-[11px] font-medium tracking-wider uppercase">Due</p>
+          <div className="border p-4">
+            <p className="rule-label">Due</p>
             <p className="mt-0.5 text-sm font-medium">{MS.dueDate}</p>
             <p className="text-muted-foreground mt-2 text-xs leading-relaxed">
               If you need longer, say so and the editor will extend it. A late review is worth far more than no
@@ -282,7 +282,7 @@ export function ReviewWorkspace({ token }: { token: string }) {
             <QuestionField key={q.id} question={q} value={answers[q.id]} onChange={(v) => set(q.id, v)} />
           ))}
 
-          <div className="bg-card sticky bottom-0 flex flex-wrap items-center gap-3 rounded-lg border px-4 py-3">
+          <div className="bg-card sticky bottom-0 flex flex-wrap items-center gap-3 border px-4 py-3">
             <p className="text-muted-foreground min-w-[200px] flex-1 text-sm">
               {missing.length === 0
                 ? 'Everything required is filled in.'
@@ -338,7 +338,7 @@ function QuestionField({
   return (
     <section
       className={cn(
-        'rounded-lg border p-4',
+        'border p-4',
         confidential ? 'border-warning/40 bg-warning-muted/40 border-dashed' : 'bg-card',
       )}
     >

@@ -13,7 +13,7 @@ export default function DeskPage() {
     <div className="mx-auto flex w-full max-w-[1400px] flex-col gap-6 px-4 py-6 md:px-6">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-xl font-semibold tracking-tight">Editor desk</h1>
+          <h1 className="font-serif text-[26px] leading-tight font-semibold tracking-[-0.018em]">Editor desk</h1>
           <p className="text-muted-foreground mt-1 text-sm">
             {CURRENT_USER.role} · {waiting} manuscript{waiting === 1 ? '' : 's'} waiting on you
             {overdue > 0 && `, ${overdue} with an overdue review`}

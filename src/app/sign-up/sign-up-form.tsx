@@ -35,7 +35,7 @@ export function SignUpForm() {
         <span className="bg-primary text-primary-foreground mb-4 flex size-8 items-center justify-center rounded text-xs font-semibold">
           {CURRENT_JOURNAL.abbreviation.slice(0, 2)}
         </span>
-        <h1 className="text-xl font-semibold tracking-tight">Create an account</h1>
+        <h1 className="font-serif text-[26px] leading-tight font-semibold tracking-[-0.018em]">Create an account</h1>
         <p className="text-muted-foreground mt-1 text-sm">
           To submit to {CURRENT_JOURNAL.abbreviation}, or to be listed as a reviewer.
         </p>

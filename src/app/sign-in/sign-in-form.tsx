@@ -33,7 +33,7 @@ export function SignInForm() {
         <span className="bg-primary text-primary-foreground mb-4 flex size-8 items-center justify-center rounded text-xs font-semibold">
           {CURRENT_JOURNAL.abbreviation.slice(0, 2)}
         </span>
-        <h1 className="text-xl font-semibold tracking-tight">Sign in</h1>
+        <h1 className="font-serif text-[26px] leading-tight font-semibold tracking-[-0.018em]">Sign in</h1>
         <p className="text-muted-foreground mt-1 text-sm">{CURRENT_JOURNAL.name}</p>
       </div>
 
@@ -43,7 +43,7 @@ export function SignInForm() {
             key={a.email}
             type="button"
             onClick={() => enter(a)}
-            className="bg-card hover:border-primary/50 focus-visible:ring-ring group flex items-center gap-3 rounded-lg border px-3.5 py-3 text-left transition-colors focus-visible:ring-2 focus-visible:outline-none"
+            className="bg-card hover:border-primary/50 focus-visible:ring-ring group flex items-center gap-3 border px-3.5 py-3 text-left transition-colors focus-visible:ring-2 focus-visible:outline-none"
           >
             <span className="bg-secondary text-secondary-foreground flex size-8 shrink-0 items-center justify-center rounded-full text-[11px] font-medium">
               {a.initials}

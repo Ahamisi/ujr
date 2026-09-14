@@ -1,4 +1,4 @@
-import { Lock, MessageSquare } from 'lucide-react'
+import { EyeOff, Lock, MessageSquare } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { RECOMMENDATION_LABEL } from '@/lib/manuscript-status'
 import type { ReviewDetail } from '@/lib/mock-manuscript'
@@ -17,13 +17,18 @@ export function ReviewCard({ review }: { review: ReviewDetail }) {
     <article className="bg-card flex flex-col rounded-lg border">
       <header className="border-b px-4 py-3">
         <div className="flex flex-wrap items-center gap-2">
-          <h3 className="font-medium">{review.displayName}</h3>
+          <h3 className="font-medium">{review.realName}</h3>
           <Badge variant={RECOMMENDATION_VARIANT[review.recommendation]}>
             {RECOMMENDATION_LABEL[review.recommendation]}
           </Badge>
           <span className="text-muted-foreground ml-auto text-xs">{review.submittedAt}</span>
         </div>
-        <p className="text-muted-foreground mt-1 flex items-center gap-3 text-xs">
+        <p className="text-muted-foreground mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
+          {/* Under double-blind the editor sees the person; the author sees the label. */}
+          <span className="flex items-center gap-1">
+            <EyeOff className="size-3" />
+            The author sees this as {review.displayName}
+          </span>
           <span>Confidence {review.confidence}/5</span>
           <span className="flex items-center gap-1">
             <MessageSquare className="size-3" />

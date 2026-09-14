@@ -223,7 +223,6 @@ export function DeskTable({ manuscripts: initial }: { manuscripts: ManuscriptRow
         subject={inviteFor?.reference}
         onInvite={(name) => {
           const target = inviteFor
-          void name
           if (!target) return
           setManuscripts((list) =>
             list.map((x) =>
@@ -235,8 +234,9 @@ export function DeskTable({ manuscripts: initial }: { manuscripts: ManuscriptRow
                       ...x.reviewers,
                       {
                         id: `inv-${Date.now()}`,
-                        // Blinded label in the list; the real name lives on the assignment row.
+                        // Blinded label for the author; the real name is editor-only.
                         displayName: `Reviewer ${x.reviewers.length + 1}`,
+                        realName: name,
                         status: 'invited' as const,
                         dueAt: '2026-10-12',
                       },

@@ -36,9 +36,9 @@ export const MANUSCRIPTS: ManuscriptRow[] = [
     blinding: 'double_blind',
     hasOverdueReview: false,
     reviewers: [
-      { id: 'r1', displayName: 'Reviewer 1', status: 'submitted', dueAt: '2026-08-14', recommendation: 'minor_revision' },
-      { id: 'r2', displayName: 'Reviewer 2', status: 'submitted', dueAt: '2026-08-14', recommendation: 'major_revision' },
-      { id: 'r3', displayName: 'Reviewer 3', status: 'declined', dueAt: '2026-08-14' },
+      { id: 'r1', displayName: 'Reviewer 1', realName: 'Prof. Yemi Ogunsanya', status: 'submitted', dueAt: '2026-08-14', recommendation: 'minor_revision' },
+      { id: 'r2', displayName: 'Reviewer 2', realName: 'Dr. Ifeoma Nwachukwu', status: 'submitted', dueAt: '2026-08-14', recommendation: 'major_revision' },
+      { id: 'r3', displayName: 'Reviewer 3', realName: 'Dr. Segun Adebayo', status: 'declined', dueAt: '2026-08-14' },
     ],
   },
   {
@@ -57,9 +57,9 @@ export const MANUSCRIPTS: ManuscriptRow[] = [
     blinding: 'double_blind',
     hasOverdueReview: true,
     reviewers: [
-      { id: 'r4', displayName: 'Reviewer 1', status: 'submitted', dueAt: '2026-09-01', recommendation: 'accept' },
-      { id: 'r5', displayName: 'Reviewer 2', status: 'accepted', dueAt: '2026-09-01' },
-      { id: 'r6', displayName: 'Reviewer 3', status: 'invited', dueAt: '2026-09-11' },
+      { id: 'r4', displayName: 'Reviewer 1', realName: 'Dr. Kwame Asante', status: 'submitted', dueAt: '2026-09-01', recommendation: 'accept' },
+      { id: 'r5', displayName: 'Reviewer 2', realName: 'Prof. Amina Bello', status: 'accepted', dueAt: '2026-09-01' },
+      { id: 'r6', displayName: 'Reviewer 3', realName: 'Dr. Funmi Lawal', status: 'invited', dueAt: '2026-09-11' },
     ],
   },
   {
@@ -78,8 +78,8 @@ export const MANUSCRIPTS: ManuscriptRow[] = [
     blinding: 'double_blind',
     hasOverdueReview: false,
     reviewers: [
-      { id: 'r7', displayName: 'Reviewer 1', status: 'declined', dueAt: '2026-09-18' },
-      { id: 'r8', displayName: 'Reviewer 2', status: 'expired', dueAt: '2026-09-18' },
+      { id: 'r7', displayName: 'Reviewer 1', realName: 'Dr. Chinedu Obi', status: 'declined', dueAt: '2026-09-18' },
+      { id: 'r8', displayName: 'Reviewer 2', realName: 'Dr. Ravi Menon', status: 'expired', dueAt: '2026-09-18' },
     ],
   },
   {
@@ -115,8 +115,8 @@ export const MANUSCRIPTS: ManuscriptRow[] = [
     blinding: 'double_blind',
     hasOverdueReview: false,
     reviewers: [
-      { id: 'r9', displayName: 'Reviewer 1', status: 'submitted', dueAt: '2026-07-30', recommendation: 'major_revision' },
-      { id: 'r10', displayName: 'Reviewer 2', status: 'submitted', dueAt: '2026-07-30', recommendation: 'major_revision' },
+      { id: 'r9', displayName: 'Reviewer 1', realName: 'Prof. Hassan Ibrahim', status: 'submitted', dueAt: '2026-07-30', recommendation: 'major_revision' },
+      { id: 'r10', displayName: 'Reviewer 2', realName: 'Dr. Tunde Salami', status: 'submitted', dueAt: '2026-07-30', recommendation: 'major_revision' },
     ],
   },
   {
@@ -135,8 +135,8 @@ export const MANUSCRIPTS: ManuscriptRow[] = [
     blinding: 'double_blind',
     hasOverdueReview: false,
     reviewers: [
-      { id: 'r11', displayName: 'Reviewer 1', status: 'accepted', dueAt: '2026-09-26' },
-      { id: 'r12', displayName: 'Reviewer 2', status: 'invited', dueAt: '2026-09-26' },
+      { id: 'r11', displayName: 'Reviewer 1', realName: 'Dr. Ngozi Eze', status: 'accepted', dueAt: '2026-09-26' },
+      { id: 'r12', displayName: 'Reviewer 2', realName: 'Dr. Bola Adeniyi', status: 'invited', dueAt: '2026-09-26' },
     ],
   },
   {
@@ -155,8 +155,8 @@ export const MANUSCRIPTS: ManuscriptRow[] = [
     blinding: 'double_blind',
     hasOverdueReview: false,
     reviewers: [
-      { id: 'r13', displayName: 'Reviewer 1', status: 'submitted', dueAt: '2026-08-20', recommendation: 'accept' },
-      { id: 'r14', displayName: 'Reviewer 2', status: 'submitted', dueAt: '2026-08-20', recommendation: 'minor_revision' },
+      { id: 'r13', displayName: 'Reviewer 1', realName: 'Dr. Emeka Udo', status: 'submitted', dueAt: '2026-08-20', recommendation: 'accept' },
+      { id: 'r14', displayName: 'Reviewer 2', realName: 'Prof. Sade Coker', status: 'submitted', dueAt: '2026-08-20', recommendation: 'minor_revision' },
     ],
   },
   {

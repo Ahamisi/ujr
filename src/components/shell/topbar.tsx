@@ -18,6 +18,7 @@ import { useToast } from '@/components/ui/toast'
 import { CURRENT_JOURNAL, OTHER_JOURNALS } from '@/lib/mock-data'
 import { ROLES, useRole, usePerson, type Role } from '@/lib/roles'
 import { DEMO_ACCOUNTS, useSession } from '@/lib/session'
+import { NotificationBell } from './notification-bell'
 import { ThemeToggle } from './theme-toggle'
 
 const JOURNALS = [CURRENT_JOURNAL, ...OTHER_JOURNALS]
@@ -103,6 +104,7 @@ export function Topbar() {
       </form>
 
       <div className="ml-auto flex items-center gap-1">
+        <NotificationBell />
         <ThemeToggle />
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -131,12 +133,6 @@ export function Topbar() {
               </DropdownMenuItem>
             ))}
             <DropdownMenuSeparator />
-            <div className="px-2 py-1.5">
-              <p className="text-muted-foreground text-[11px] leading-relaxed">
-                A demo shortcut. In production this is three different sign-ins, and the permission model is
-                enforced on the server.
-              </p>
-            </div>
             <DropdownMenuSeparator />
             <DropdownMenuItem
               variant="destructive"

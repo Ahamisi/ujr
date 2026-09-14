@@ -10,6 +10,7 @@ import {
   FilePlus2,
   FileStack,
   FileText,
+  Bell,
   Inbox,
   LayoutList,
   Settings,
@@ -33,8 +34,12 @@ const NAV: Record<Role, { href: string; label: string; icon: typeof Inbox }[]> =
   author: [
     { href: '/my-submissions', label: 'My submissions', icon: FileText },
     { href: '/submit', label: 'New submission', icon: FilePlus2 },
+    { href: '/notifications', label: 'Notifications', icon: Bell },
   ],
-  reviewer: [{ href: '/my-reviews', label: 'Review requests', icon: Inbox }],
+  reviewer: [
+    { href: '/my-reviews', label: 'Review requests', icon: Inbox },
+    { href: '/notifications', label: 'Notifications', icon: Bell },
+  ],
 }
 
 export function Sidebar() {
@@ -68,12 +73,6 @@ export function Sidebar() {
           )
         })}
       </div>
-
-      {role !== 'editor' && (
-        <p className="text-muted-foreground border-sidebar-border border-t px-3 py-3 text-[11px] leading-relaxed">
-          You are seeing what a {role} sees. Reviewer identities and confidential comments are not in this view.
-        </p>
-      )}
     </nav>
   )
 }

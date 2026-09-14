@@ -33,12 +33,13 @@ export function ReviewerTrack({
               <TooltipTrigger asChild>
                 <span
                   className={cn('size-2.5 rounded-full ring-1 ring-inset ring-black/5', meta.dotClass)}
-                  aria-label={`${r.displayName}: ${meta.label}`}
+                  aria-label={`${r.realName}: ${meta.label}`}
                 />
               </TooltipTrigger>
               <TooltipContent>
-                <span className="font-medium">{r.displayName}</span> — {meta.label}
+                <span className="font-medium">{r.realName}</span> — {meta.label}
                 {r.recommendation ? ` · ${RECOMMENDATION_LABEL[r.recommendation]}` : ''}
+                <span className="block opacity-70">Shown to the author as {r.displayName}</span>
               </TooltipContent>
             </Tooltip>
           )

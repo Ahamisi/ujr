@@ -50,8 +50,9 @@ export default async function AuthorSubmissionPage({ params }: { params: Promise
         <section className="mt-8">
           <h2 className="text-sm font-medium">Reviewer comments</h2>
           <p className="text-muted-foreground mt-1 text-sm leading-relaxed">
-            Reviewers are anonymous under this journal&rsquo;s policy. Comments the reviewers marked confidential to
-            the editor are not shown here and are not part of the decision letter.
+            This journal reviews double-blind. The reviewers were not told who wrote this manuscript, and you are
+            not told who they are — not now, and not after publication. Comments they marked confidential to the
+            editor are not shown here and are not part of your decision letter.
           </p>
 
           <div className="mt-4 flex flex-col gap-4">

@@ -9,7 +9,10 @@ export interface ScoredCriterion {
 
 export interface ReviewDetail {
   id: string
+  /** Blinded label, shown to the author. */
   displayName: string
+  /** The real reviewer. Editor-facing only. */
+  realName: string
   submittedAt: string
   recommendation: Recommendation
   confidence: number
@@ -61,6 +64,7 @@ export const REVIEWS: ReviewDetail[] = [
   {
     id: 'rev1',
     displayName: 'Reviewer 1',
+    realName: 'Prof. Yemi Ogunsanya',
     submittedAt: '28 August 2026',
     recommendation: 'minor_revision',
     confidence: 4,
@@ -79,6 +83,7 @@ export const REVIEWS: ReviewDetail[] = [
   {
     id: 'rev2',
     displayName: 'Reviewer 2',
+    realName: 'Dr. Ifeoma Nwachukwu',
     submittedAt: '31 August 2026',
     recommendation: 'major_revision',
     confidence: 5,

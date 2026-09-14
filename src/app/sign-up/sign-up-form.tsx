@@ -3,7 +3,6 @@
 import * as React from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { Info } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -39,14 +38,6 @@ export function SignUpForm() {
         <h1 className="text-xl font-semibold tracking-tight">Create an account</h1>
         <p className="text-muted-foreground mt-1 text-sm">
           To submit to {CURRENT_JOURNAL.abbreviation}, or to be listed as a reviewer.
-        </p>
-      </div>
-
-      <div className="border-primary/30 bg-accent/50 flex items-start gap-2.5 rounded-lg border px-3.5 py-3">
-        <Info className="text-primary mt-0.5 size-4 shrink-0" />
-        <p className="text-sm leading-relaxed">
-          <span className="font-medium">Demo build.</span>{' '}
-          <span className="text-muted-foreground">Nothing is stored anywhere but this browser.</span>
         </p>
       </div>
 

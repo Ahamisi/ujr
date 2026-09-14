@@ -1,5 +1,4 @@
 import Link from 'next/link'
-import { DemoBanner } from '@/components/shell/demo-banner'
 import { ThemeToggle } from '@/components/shell/theme-toggle'
 import { JOURNAL } from '@/lib/mock-published'
 
@@ -14,7 +13,6 @@ const LINKS = [
 export default function PublicLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex min-h-screen flex-col">
-      <DemoBanner />
 
       <header className="border-border border-b">
         <div className="mx-auto flex w-full max-w-[1100px] flex-wrap items-center gap-x-6 gap-y-3 px-4 py-4 md:px-6">

@@ -25,8 +25,10 @@ export type BlindingMode = 'single_blind' | 'double_blind' | 'open' | 'transpare
 
 export interface ReviewerChip {
   id: string
-  /** Masked to "Reviewer 1" in the author-facing view. Never send real names there. */
+  /** The blinded label — "Reviewer 1". This is the ONLY name an author may see. */
   displayName: string
+  /** The real person. Editor-facing views only; never serialise this to an author. */
+  realName: string
   status: AssignmentStatus
   dueAt: string
   recommendation?: Recommendation

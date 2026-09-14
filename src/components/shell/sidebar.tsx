@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation'
 import {
   BookOpenCheck,
   ClipboardList,
+  CreditCard,
   FilePlus2,
   FileStack,
   FileText,
@@ -23,6 +24,7 @@ const NAV: Record<Role, { href: string; label: string; icon: typeof Inbox }[]> =
     { href: '/reviewers', label: 'Reviewers', icon: Users },
     { href: '/issues', label: 'Issues', icon: LayoutList },
     { href: '/production', label: 'Production', icon: BookOpenCheck },
+    { href: '/transactions', label: 'Transactions', icon: CreditCard },
     { href: '/reports', label: 'Reports', icon: ClipboardList },
     { href: '/settings', label: 'Settings', icon: Settings },
   ],

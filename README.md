@@ -22,6 +22,12 @@ src/
   app/
     (app)/               authenticated shell — sidebar + topbar
       desk/              editor desk: the triage queue
+      transactions/      charges, waivers, Paystack reconciliation
+    (public)/            the journal's public face — no sign-in
+      articles/[id]/     article of record, with Highwire citation meta tags
+      archive/           every published issue
+      search/            DOI and ISSN resolve; everything else is a text search
+    review/[token]/      the reviewer's workspace, no account needed
     layout.tsx           root layout, pre-paint theme script
     globals.css          design tokens (light + dark), Tailwind v4
   components/

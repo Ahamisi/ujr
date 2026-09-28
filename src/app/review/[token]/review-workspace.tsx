@@ -7,7 +7,6 @@ import {
   Clock,
   Download,
   EyeOff,
-  FileText,
   Loader2,
   Lock,
 } from 'lucide-react'
@@ -16,10 +15,53 @@ import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
-import { ANONYMISED_MANUSCRIPT as MS, REVIEW_FORM, type Question } from '@/lib/review-form'
+import { ReviewerMarkup } from '@/components/journal/manuscript-notes'
+import { formatWhen } from '@/lib/api'
+import { type Question } from '@/lib/review-form'
 import { cn } from '@/lib/utils'
 
 type Stage = 'invitation' | 'reviewing' | 'declined' | 'submitted'
+
+interface Invitation {
+  reference: string
+  title: string
+  abstract: string | null
+  file: { id: string; originalName: string } | null
+  dueAt: string
+  status: string
+  blinding: string
+  form: {
+    id: string
+    type: Question['type']
+    label: string
+    helpText: string | null
+    required: boolean
+    visibility: Question['visibility']
+    config: {
+      min?: number
+      max?: number
+      minLabel?: string
+      maxLabel?: string
+      options?: { value: string; label: string }[]
+    }
+  }[]
+}
+
+function toQuestion(row: Invitation['form'][number]): Question {
+  return {
+    id: row.id,
+    type: row.type,
+    label: row.label,
+    helpText: row.helpText ?? undefined,
+    required: row.required,
+    visibility: row.visibility,
+    min: row.config?.min,
+    max: row.config?.max,
+    minLabel: row.config?.minLabel,
+    maxLabel: row.config?.maxLabel,
+    options: row.config?.options,
+  }
+}
 type Answers = Record<string, string | number>
 type SaveState = 'idle' | 'saving' | 'saved' | 'offline'
 
@@ -40,6 +82,31 @@ export function ReviewWorkspace({ token }: { token: string }) {
   const [declineReason, setDeclineReason] = React.useState('expertise')
   const [suggestion, setSuggestion] = React.useState('')
   const [restored, setRestored] = React.useState(false)
+  const [invite, setInvite] = React.useState<Invitation | null>(null)
+  const [loadError, setLoadError] = React.useState<string | null>(null)
+
+  React.useEffect(() => {
+    let cancel = false
+    fetch(`/api/v1/reviews/${token}`, { credentials: 'include' })
+      .then(async (response) => {
+        const body = (await response.json()) as Invitation & { error?: { message?: string } }
+        if (!response.ok) throw new Error(body.error?.message ?? 'This invitation is not valid')
+        return body
+      })
+      .then((body) => {
+        if (cancel) return
+        setInvite(body)
+        if (body.status === 'accepted') setStage('reviewing')
+        if (body.status === 'submitted') setStage('submitted')
+        if (body.status === 'declined') setStage('declined')
+      })
+      .catch((err: unknown) => {
+        if (!cancel) setLoadError(err instanceof Error ? err.message : 'This invitation is not valid')
+      })
+    return () => {
+      cancel = true
+    }
+  }, [token])
 
   /*
    * Restore any draft this browser holds. This genuinely has to run after mount:
@@ -89,7 +156,8 @@ export function ReviewWorkspace({ token }: { token: string }) {
     return () => clearTimeout(t)
   }, [answers, stage, storageKey, online])
 
-  const required = REVIEW_FORM.questions.filter((q) => q.required)
+  const questions = (invite?.form ?? []).map(toQuestion)
+  const required = questions.filter((q) => q.required)
   const missing = required.filter((q) => {
     const v = answers[q.id]
     return v === undefined || v === '' || (typeof v === 'string' && v.trim().length === 0)
@@ -100,44 +168,77 @@ export function ReviewWorkspace({ token }: { token: string }) {
     setSave('saving')
   }
 
-  function submit() {
+  async function respond(action: 'accept' | 'decline') {
+    const response = await fetch(`/api/v1/reviews/${token}/respond`, {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ action, reason: action === 'decline' ? declineReason : undefined }),
+    })
+    if (!response.ok) {
+      const body = (await response.json().catch(() => null)) as { error?: { message?: string } } | null
+      throw new Error(body?.error?.message ?? 'Could not answer the invitation')
+    }
+    setStage(action === 'accept' ? 'reviewing' : 'declined')
+  }
+
+  async function submit() {
+    const recommendationQuestion = questions.find((question) => question.options?.some((option) => option.value === 'accept'))
+    const recommendation = recommendationQuestion ? answers[recommendationQuestion.id] : undefined
+    const response = await fetch(`/api/v1/reviews/${token}/submit`, {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ recommendation, answers }),
+    })
+    if (!response.ok) {
+      const body = (await response.json().catch(() => null)) as { error?: { message?: string } } | null
+      throw new Error(body?.error?.message ?? 'Could not submit the review')
+    }
     setStage('submitted')
     try {
-      localStorage.setItem(storageKey, JSON.stringify({ answers, stage: 'submitted' }))
+      localStorage.removeItem(storageKey)
     } catch {
-      /* nothing to do — the submission itself is what matters */
+      /* the server has the review */
     }
   }
 
   /* ---------------- invitation ---------------- */
 
+  if (loadError) {
+    return (
+      <div className="mx-auto w-full max-w-xl px-4 py-16 text-center md:px-6">
+        <h1 className="text-lg font-semibold">Invitation unavailable</h1>
+        <p className="text-muted-foreground mt-2 text-sm">{loadError}</p>
+      </div>
+    )
+  }
+
+  if (!invite) {
+    return <p className="text-muted-foreground px-4 py-16 text-center text-sm">Loading the invitation</p>
+  }
+
   if (stage === 'invitation') {
     return (
       <div className="mx-auto w-full max-w-2xl px-4 py-10 md:px-6">
-        <p className="text-muted-foreground text-sm">{MS.invitedBy} has asked you to review</p>
-        <h1 className="mt-2 text-2xl font-semibold tracking-tight text-balance">{MS.title}</h1>
+        <p className="text-muted-foreground text-sm">You have been asked to review</p>
+        <h1 className="mt-2 text-2xl font-semibold tracking-tight text-balance">{invite.title}</h1>
 
         <div className="mt-4 flex flex-wrap items-center gap-2">
           <Badge variant="outline" className="gap-1">
             <Clock className="size-3" />
-            About {MS.estimatedMinutes} minutes
+            Due {formatWhen(invite.dueAt)}
           </Badge>
-          <Badge variant="warning">Due {MS.dueDate}</Badge>
+          <Badge variant="secondary" className="tnum">{invite.reference}</Badge>
           <Badge variant="outline" className="gap-1">
             <EyeOff className="size-3" />
-            Double-blind
+            {String(invite.blinding).replaceAll('_', ' ')}
           </Badge>
         </div>
 
-        <div className="bg-card mt-6 border p-5">
-          <h2 className="rule-label mb-2">Abstract</h2>
-          <p className="text-sm leading-relaxed">{MS.abstract}</p>
-          <p className="text-muted-foreground mt-4 flex flex-wrap gap-x-4 gap-y-1 text-xs">
-            <span>{MS.section}</span>
-            <span className="tnum">{MS.wordCount.toLocaleString()} words</span>
-            <span className="tnum">{MS.figures} figures</span>
-            <span className="tnum">{MS.tables} tables</span>
-          </p>
+        <div className="bg-card mt-6 rounded-lg border p-5">
+          <h2 className="text-muted-foreground mb-2 text-[11px] font-medium tracking-wider uppercase">Abstract</h2>
+          <p className="text-sm leading-relaxed">{invite.abstract}</p>
         </div>
 
         <p className="text-muted-foreground mt-4 text-sm leading-relaxed">
@@ -146,8 +247,10 @@ export function ReviewWorkspace({ token }: { token: string }) {
         </p>
 
         <div className="mt-6 flex flex-wrap gap-2">
-          <Button onClick={() => setStage('reviewing')}>Accept and start reviewing</Button>
-          <Button variant="outline" onClick={() => setStage('declined')}>
+          <Button onClick={() => void respond('accept').catch((err: unknown) => setLoadError(err instanceof Error ? err.message : 'Could not accept'))}>
+            Accept and start reviewing
+          </Button>
+          <Button variant="outline" onClick={() => void respond('decline').catch((err: unknown) => setLoadError(err instanceof Error ? err.message : 'Could not decline'))}>
             Decline
           </Button>
         </div>
@@ -160,7 +263,7 @@ export function ReviewWorkspace({ token }: { token: string }) {
   if (stage === 'declined') {
     return (
       <div className="mx-auto w-full max-w-xl px-4 py-10 md:px-6">
-        <h1 className="font-serif text-[26px] leading-tight font-semibold tracking-[-0.018em]">Decline this invitation</h1>
+        <h1 className="text-xl font-semibold tracking-tight">Decline this invitation</h1>
         <p className="text-muted-foreground mt-1 text-sm">
           A reason helps the editor find someone suitable faster. Nothing here reaches the authors.
         </p>
@@ -228,7 +331,7 @@ export function ReviewWorkspace({ token }: { token: string }) {
   return (
     <div className="mx-auto w-full max-w-[1200px] px-4 py-6 md:px-6">
       {!online && (
-        <div className="border-warning/40 bg-warning-muted/60 mb-4 flex items-start gap-2.5 border px-3.5 py-2.5">
+        <div className="border-warning/40 bg-warning-muted/60 mb-4 flex items-start gap-2.5 rounded-md border px-3.5 py-2.5">
           <CloudOff className="text-warning mt-0.5 size-4 shrink-0" />
           <p className="text-sm">
             <span className="font-medium">You are offline.</span>{' '}
@@ -245,23 +348,23 @@ export function ReviewWorkspace({ token }: { token: string }) {
 
       <div className="grid gap-6 lg:grid-cols-[320px_minmax(0,1fr)]">
         <aside className="flex flex-col gap-4 lg:sticky lg:top-6 lg:self-start">
-          <div className="border p-4">
-            <p className="text-muted-foreground tnum text-xs">{MS.reference}</p>
-            <h1 className="mt-1 text-sm font-semibold text-balance">{MS.title}</h1>
-            <p className="text-muted-foreground mt-2 text-xs leading-relaxed">{MS.abstract}</p>
-            <Button variant="outline" size="sm" className="mt-3 w-full">
-              <Download />
-              Download the manuscript
-            </Button>
-            <p className="text-muted-foreground mt-2 flex items-start gap-1.5 text-[11px] leading-relaxed">
-              <FileText className="mt-0.5 size-3 shrink-0" />
-              Anonymised PDF, {MS.figures} figures. Cached for offline reading once downloaded.
-            </p>
+          <div className="bg-card rounded-lg border p-4">
+            <p className="text-muted-foreground tnum text-xs">{invite.reference}</p>
+            <h1 className="mt-1 text-sm font-semibold text-balance">{invite.title}</h1>
+            <p className="text-muted-foreground mt-2 text-xs leading-relaxed">{invite.abstract}</p>
+            {invite.file ? (
+              <a href={`/api/v1/reviews/${token}/files/${invite.file.id}`} className="text-primary mt-3 inline-flex items-center gap-1 text-xs hover:underline">
+                <Download className="size-3" />
+                Download {invite.file.originalName}
+              </a>
+            ) : (
+              <p className="text-muted-foreground mt-3 text-xs">No manuscript file is attached.</p>
+            )}
           </div>
 
-          <div className="border p-4">
-            <p className="rule-label">Due</p>
-            <p className="mt-0.5 text-sm font-medium">{MS.dueDate}</p>
+          <div className="bg-card rounded-lg border p-4">
+            <p className="text-muted-foreground text-[11px] font-medium tracking-wider uppercase">Due</p>
+            <p className="mt-0.5 text-sm font-medium">{formatWhen(invite.dueAt)}</p>
             <p className="text-muted-foreground mt-2 text-xs leading-relaxed">
               If you need longer, say so and the editor will extend it. A late review is worth far more than no
               review.
@@ -270,19 +373,20 @@ export function ReviewWorkspace({ token }: { token: string }) {
         </aside>
 
         <div className="flex flex-col gap-4">
+          {invite.file && <ReviewerMarkup token={token} file={invite.file} />}
           <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
             <h2 className="text-lg font-semibold tracking-tight">Your review</h2>
             <span className="text-muted-foreground text-xs">
-              {REVIEW_FORM.name} · v{REVIEW_FORM.version}
+              Review form
             </span>
             <SaveIndicator state={save} />
           </div>
 
-          {REVIEW_FORM.questions.map((q) => (
+          {questions.map((q) => (
             <QuestionField key={q.id} question={q} value={answers[q.id]} onChange={(v) => set(q.id, v)} />
           ))}
 
-          <div className="bg-card sticky bottom-0 flex flex-wrap items-center gap-3 border px-4 py-3">
+          <div className="bg-card sticky bottom-0 flex flex-wrap items-center gap-3 rounded-lg border px-4 py-3">
             <p className="text-muted-foreground min-w-[200px] flex-1 text-sm">
               {missing.length === 0
                 ? 'Everything required is filled in.'
@@ -290,7 +394,7 @@ export function ReviewWorkspace({ token }: { token: string }) {
                     .map((q) => q.label.toLowerCase())
                     .join(', ')}.`}
             </p>
-            <Button disabled={missing.length > 0} onClick={submit}>
+            <Button disabled={missing.length > 0 || !online} onClick={() => void submit().catch((err: unknown) => setLoadError(err instanceof Error ? err.message : 'Could not submit'))}>
               {online ? 'Submit review' : 'Submit when back online'}
             </Button>
           </div>
@@ -338,7 +442,7 @@ function QuestionField({
   return (
     <section
       className={cn(
-        'border p-4',
+        'rounded-lg border p-4',
         confidential ? 'border-warning/40 bg-warning-muted/40 border-dashed' : 'bg-card',
       )}
     >

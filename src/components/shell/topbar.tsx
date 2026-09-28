@@ -14,38 +14,34 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { useToast } from '@/components/ui/toast'
-import { CURRENT_JOURNAL, OTHER_JOURNALS } from '@/lib/mock-data'
-import { ROLES, useRole, usePerson, type Role } from '@/lib/roles'
-import { DEMO_ACCOUNTS, useSession } from '@/lib/session'
+import { useSession } from '@/lib/session'
 import { NotificationBell } from './notification-bell'
 import { ThemeToggle } from './theme-toggle'
 
-const JOURNALS = [CURRENT_JOURNAL, ...OTHER_JOURNALS]
+function initials(name: string) {
+  const parts = name.split(/\s+/).filter(Boolean)
+  return ((parts[0]?.[0] ?? '') + (parts[1]?.[0] ?? '')).toUpperCase() || '•'
+}
 
 export function Topbar() {
-  const { role, setRole } = useRole()
-  const { signIn, signOut } = useSession()
-  const person = usePerson()
-  const [active, setActive] = React.useState(CURRENT_JOURNAL.abbreviation)
+  const { session, signOut, journalSlug, setJournalSlug } = useSession()
   const [query, setQuery] = React.useState('')
   const router = useRouter()
-  const toast = useToast()
 
-  const journal = JOURNALS.find((j) => j.abbreviation === active) ?? CURRENT_JOURNAL
+  const journals = React.useMemo(() => {
+    const seen = new Map<string, { slug: string; name: string; abbreviation: string }>()
+    for (const membership of session?.memberships ?? []) {
+      if (!membership.slug || seen.has(membership.slug)) continue
+      seen.set(membership.slug, {
+        slug: membership.slug,
+        name: membership.name ?? membership.slug,
+        abbreviation: (membership.slug || 'UJ').toUpperCase(),
+      })
+    }
+    return [...seen.values()]
+  }, [session])
 
-  const HOME: Record<Role, string> = {
-    editor: '/desk',
-    author: '/my-submissions',
-    reviewer: '/my-reviews',
-  }
-
-  function switchRole(next: Role) {
-    setRole(next)
-    const account = DEMO_ACCOUNTS.find((a) => a.role === next)
-    if (account) signIn(account)
-    router.push(HOME[next])
-  }
+  const journal = journals.find((item) => item.slug === journalSlug) ?? journals[0]
 
   function search(e: React.FormEvent) {
     e.preventDefault()
@@ -55,39 +51,31 @@ export function Topbar() {
 
   return (
     <header className="bg-background border-border sticky top-0 z-40 flex h-14 items-center gap-3 border-b px-4">
-      {/* Tenant switcher. Present from day one because the data model is. */}
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" className="h-9 gap-2 px-2">
             <span className="bg-primary text-primary-foreground flex size-6 items-center justify-center rounded text-[10px] font-semibold">
-              {journal.abbreviation.slice(0, 2)}
+              {(journal?.abbreviation ?? 'UJ').slice(0, 2)}
             </span>
-            <span className="hidden text-sm font-medium sm:inline">{journal.abbreviation}</span>
+            <span className="hidden text-sm font-medium sm:inline">{journal?.abbreviation ?? 'UJER'}</span>
             <ChevronsUpDown className="text-muted-foreground size-3.5" />
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="start" className="w-72">
           <DropdownMenuLabel>Journals</DropdownMenuLabel>
-          {JOURNALS.map((j) => (
+          {journals.map((item) => (
             <DropdownMenuItem
-              key={j.slug}
+              key={item.slug}
               className="flex-col items-start gap-0.5"
-              onSelect={() => {
-                setActive(j.abbreviation)
-                toast(`Switched to ${j.abbreviation}`)
-              }}
+              onSelect={() => setJournalSlug(item.slug)}
             >
               <span className="font-medium">
-                {j.abbreviation}
-                {j.abbreviation === active && <span className="text-muted-foreground ml-2 text-xs">current</span>}
+                {item.abbreviation}
+                {item.slug === journalSlug && <span className="text-muted-foreground ml-2 text-xs">current</span>}
               </span>
-              <span className="text-muted-foreground text-xs">{j.name}</span>
+              <span className="text-muted-foreground text-xs">{item.name}</span>
             </DropdownMenuItem>
           ))}
-          <DropdownMenuSeparator />
-          <DropdownMenuItem onSelect={() => toast('Journal provisioning is not built yet')}>
-            Provision a new journal
-          </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
 
@@ -110,35 +98,19 @@ export function Topbar() {
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="h-9 gap-2 px-2">
               <Avatar>
-                <AvatarFallback>{person.initials}</AvatarFallback>
+                <AvatarFallback>{initials(session?.name ?? '')}</AvatarFallback>
               </Avatar>
-              <span className="hidden text-sm lg:inline">{person.person}</span>
+              <span className="hidden text-sm lg:inline">{session?.name}</span>
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-64">
-            <DropdownMenuLabel>View the product as</DropdownMenuLabel>
-            {ROLES.map((r) => (
-              <DropdownMenuItem
-                key={r.id}
-                className="flex-col items-start gap-0.5"
-                onSelect={() => switchRole(r.id)}
-              >
-                <span className="flex w-full items-center gap-2 font-medium">
-                  {r.label}
-                  {r.id === role && <span className="text-muted-foreground ml-auto text-xs">current</span>}
-                </span>
-                <span className="text-muted-foreground text-xs">
-                  {r.person} · {r.context}
-                </span>
-              </DropdownMenuItem>
-            ))}
+            <DropdownMenuLabel>{session?.email}</DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuSeparator />
+            <DropdownMenuItem onSelect={() => router.push('/')}>Journal home</DropdownMenuItem>
             <DropdownMenuItem
               variant="destructive"
               onSelect={() => {
-                signOut()
-                router.push('/sign-in')
+                void signOut().then(() => router.push('/sign-in'))
               }}
             >
               Sign out

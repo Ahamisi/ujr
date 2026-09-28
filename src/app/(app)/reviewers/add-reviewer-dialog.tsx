@@ -16,6 +16,7 @@ import {
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { useToast } from '@/components/ui/toast'
+import { api } from '@/lib/api'
 import type { ReviewerRecord } from '@/lib/mock-operations'
 
 export function AddReviewerDialog({ onAdd }: { onAdd: (r: ReviewerRecord) => void }) {
@@ -28,31 +29,56 @@ export function AddReviewerDialog({ onAdd }: { onAdd: (r: ReviewerRecord) => voi
 
   const valid = name.trim().length > 1 && email.includes('@') && affiliation.trim().length > 1
 
-  function submit(e: React.FormEvent) {
+  const [pending, setPending] = React.useState(false)
+
+  async function submit(e: React.FormEvent) {
     e.preventDefault()
-    if (!valid) return
-    onAdd({
-      id: `new-${Date.now()}`,
-      name: name.trim(),
-      affiliation: affiliation.trim(),
-      country: 'NG',
-      expertise: expertise
-        .split(',')
-        .map((s) => s.trim())
-        .filter(Boolean),
-      invited: 0,
-      completed: 0,
-      declined: 0,
-      medianTurnaroundDays: null,
-      lastInvited: '—',
-      sharedPool: false,
-    })
-    toast(`${name.trim()} added to the reviewer pool`)
-    setName('')
-    setEmail('')
-    setAffiliation('')
-    setExpertise('')
-    setOpen(false)
+    if (!valid || pending) return
+    setPending(true)
+    try {
+      const saved = await api<{
+        id: string
+        name: string
+        affiliation: string
+        country: string | null
+        expertise: string[]
+        sharedReviewerPool: boolean
+      }>('/reviewers', {
+        method: 'POST',
+        body: JSON.stringify({
+          name: name.trim(),
+          email: email.trim(),
+          affiliation: affiliation.trim(),
+          expertise: expertise
+            .split(',')
+            .map((item) => item.trim())
+            .filter(Boolean),
+        }),
+      })
+      onAdd({
+        id: saved.id,
+        name: saved.name,
+        affiliation: saved.affiliation,
+        country: saved.country ?? '',
+        expertise: saved.expertise,
+        invited: 0,
+        completed: 0,
+        declined: 0,
+        medianTurnaroundDays: null,
+        lastInvited: '—',
+        sharedPool: saved.sharedReviewerPool,
+      })
+      toast(`${saved.name} added to the reviewer pool`)
+      setName('')
+      setEmail('')
+      setAffiliation('')
+      setExpertise('')
+      setOpen(false)
+    } catch (err) {
+      toast(err instanceof Error ? err.message : 'Could not add that reviewer')
+    } finally {
+      setPending(false)
+    }
   }
 
   return (
@@ -97,8 +123,8 @@ export function AddReviewerDialog({ onAdd }: { onAdd: (r: ReviewerRecord) => voi
             <Button type="button" variant="ghost" size="sm" onClick={() => setOpen(false)}>
               Cancel
             </Button>
-            <Button type="submit" size="sm" disabled={!valid}>
-              Add to pool
+            <Button type="submit" size="sm" disabled={!valid || pending}>
+              {pending ? 'Adding…' : 'Add to pool'}
             </Button>
           </DialogFooter>
         </form>

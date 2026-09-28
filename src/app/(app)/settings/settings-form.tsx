@@ -7,10 +7,8 @@ import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
 import { diffPolicy, PLATFORM_DEFAULTS, type BlindingMode, type JournalPolicy } from '@/db/policy'
+import { api } from '@/lib/api'
 import { SettingGroup, SettingRow } from './setting-row'
-
-/** How many manuscripts are mid-review right now. From the DB in the real thing. */
-const IN_FLIGHT = 12
 
 const BLINDING_HELP: Record<BlindingMode, string> = {
   single_blind: 'Reviewers see the authors. Authors never see the reviewers.',
@@ -22,6 +20,38 @@ const BLINDING_HELP: Record<BlindingMode, string> = {
 export function SettingsForm() {
   const [saved, setSaved] = React.useState<JournalPolicy>(PLATFORM_DEFAULTS)
   const [draft, setDraft] = React.useState<JournalPolicy>(PLATFORM_DEFAULTS)
+  const [inFlight, setInFlight] = React.useState(0)
+  const [saving, setSaving] = React.useState(false)
+
+  React.useEffect(() => {
+    let cancel = false
+    api<{ policy: JournalPolicy; inFlight: number }>('/settings')
+      .then((row) => {
+        if (cancel) return
+        setSaved(row.policy)
+        setDraft(row.policy)
+        setInFlight(row.inFlight)
+      })
+      .catch(() => {})
+    return () => {
+      cancel = true
+    }
+  }, [])
+
+  async function save() {
+    setSaving(true)
+    try {
+      const row = await api<{ policy: JournalPolicy; inFlight: number }>('/settings', {
+        method: 'PUT',
+        body: JSON.stringify(draft),
+      })
+      setSaved(row.policy)
+      setDraft(row.policy)
+      setInFlight(row.inFlight)
+    } finally {
+      setSaving(false)
+    }
+  }
 
   const changes = React.useMemo(() => diffPolicy(saved, draft), [saved, draft])
   const dirty = changes.length > 0
@@ -369,7 +399,7 @@ export function SettingsForm() {
                 {changes.length} change{changes.length === 1 ? '' : 's'}
               </span>{' '}
               <span className="text-muted-foreground">
-                — applies to new submissions only. The {IN_FLIGHT} manuscripts currently under review keep the policy
+                — applies to new submissions only. The {inFlight} manuscripts currently under review keep the policy
                 frozen at their submission.
               </span>
             </p>
@@ -378,7 +408,7 @@ export function SettingsForm() {
                 <RotateCcw />
                 Discard
               </Button>
-              <Button size="sm" onClick={() => setSaved(draft)}>
+              <Button size="sm" disabled={saving} onClick={() => void save()}>
                 Save changes
               </Button>
             </div>

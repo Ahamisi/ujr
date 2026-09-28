@@ -66,7 +66,17 @@ const esc = (s: string) =>
  * than hand-written, so the metadata that is deposited is exactly the metadata
  * the article page shows — a mismatch between the two is how citations break.
  */
-export function depositXml(article: Article, siteUrl = 'https://ujer.unilag.edu.ng') {
+export function depositXml(
+  article: Article,
+  siteUrl = 'https://ujer.unilag.edu.ng',
+  journal: {
+    name: string
+    abbreviation: string
+    publisher: string
+    issnElectronic: string
+    issnPrint: string
+  } = JOURNAL,
+) {
   const [firstPage, lastPage] = article.pages.split('–')
   const [year, month, day] = article.publishedIso.split('-')
   const timestamp = article.publishedIso.replace(/-/g, '') + '000000'
@@ -92,18 +102,18 @@ export function depositXml(article: Article, siteUrl = 'https://ujer.unilag.edu.
     <doi_batch_id>${esc(article.id)}-${timestamp}</doi_batch_id>
     <timestamp>${timestamp}</timestamp>
     <depositor>
-      <depositor_name>${esc(JOURNAL.abbreviation)}</depositor_name>
+      <depositor_name>${esc(journal.abbreviation)}</depositor_name>
       <email_address>doi@ujer.unilag.edu.ng</email_address>
     </depositor>
-    <registrant>${esc(JOURNAL.publisher)}</registrant>
+    <registrant>${esc(journal.publisher)}</registrant>
   </head>
   <body>
     <journal>
       <journal_metadata language="en">
-        <full_title>${esc(JOURNAL.name)}</full_title>
-        <abbrev_title>${esc(JOURNAL.abbreviation)}</abbrev_title>
-        <issn media_type="electronic">${JOURNAL.issnElectronic}</issn>
-        <issn media_type="print">${JOURNAL.issnPrint}</issn>
+        <full_title>${esc(journal.name)}</full_title>
+        <abbrev_title>${esc(journal.abbreviation)}</abbrev_title>
+        <issn media_type="electronic">${journal.issnElectronic}</issn>
+        <issn media_type="print">${journal.issnPrint}</issn>
       </journal_metadata>
       <journal_issue>
         <publication_date media_type="online">

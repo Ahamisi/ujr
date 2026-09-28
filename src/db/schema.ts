@@ -10,11 +10,13 @@
 import { relations, sql } from 'drizzle-orm'
 import {
   boolean,
+  date,
   index,
   integer,
   jsonb,
   pgEnum,
   pgTable,
+  primaryKey,
   text,
   timestamp,
   uniqueIndex,
@@ -35,6 +37,7 @@ export const manuscriptStatus = pgEnum('manuscript_status', [
   'submitted',
   'desk_review',
   'desk_rejected',
+  'rejected', // closed after review — not a desk reject
   'reviewer_search',
   'under_review',
   'decision_pending',
@@ -120,6 +123,43 @@ export const answerVisibility = pgEnum('answer_visibility', [
   'editor_only',
 ])
 
+export const chargeStatus = pgEnum('charge_status', ['pending', 'paid', 'waived', 'failed', 'refunded'])
+
+export const issueStatus = pgEnum('issue_status', ['planning', 'open', 'published'])
+
+export const productionStage = pgEnum('production_stage', [
+  'copyediting',
+  'typesetting',
+  'proofing',
+  'ready',
+])
+
+/** A row exists only after a DOI is minted. No row means unminted. */
+export const doiDepositState = pgEnum('doi_deposit_state', [
+  'minted',
+  'queued',
+  'submitted',
+  'registered',
+  'failed',
+])
+
+/**
+ * Institutions people type on sign-up and on a submission. Platform-wide, so
+ * there is no journal_id and no row-level security. `name_key` is the
+ * normalised form: "UNILAG" and "University of Lagos" are one row.
+ */
+export const institutions = pgTable(
+  'institutions',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    name: text('name').notNull(),
+    nameKey: text('name_key').notNull(),
+    useCount: integer('use_count').notNull().default(0),
+    createdAt: now(),
+  },
+  (t) => [uniqueIndex('institutions_name_key_uq').on(t.nameKey)],
+)
+
 /* ================================================================== *
  * TENANCY
  * ================================================================== */
@@ -177,16 +217,69 @@ export const sections = pgTable(
   (t) => [index('sections_journal_idx').on(t.journalId)],
 )
 
+/** Allocates UJER-2026-0147. The counter is the database's, so two submits cannot collide. */
+export const referenceCounters = pgTable(
+  'reference_counters',
+  {
+    journalId: uuid('journal_id')
+      .notNull()
+      .references(() => journals.id),
+    year: integer('year').notNull(),
+    nextNumber: integer('next_number').notNull(),
+  },
+  (t) => [primaryKey({ columns: [t.journalId, t.year] })],
+)
+
+/** Article number inside a DOI suffix. Same rule: the database owns the sequence. */
+export const doiCounters = pgTable('doi_counters', {
+  journalId: uuid('journal_id')
+    .primaryKey()
+    .references(() => journals.id),
+  nextNumber: integer('next_number').notNull(),
+})
+
+export const issues = pgTable(
+  'issues',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    journalId: uuid('journal_id')
+      .notNull()
+      .references(() => journals.id),
+    volume: integer('volume').notNull(),
+    number: integer('number').notNull(),
+    title: text('title'),
+    status: issueStatus('status').notNull().default('planning'),
+    targetDate: date('target_date'),
+    publishedAt: timestamp('published_at', { withTimezone: true }),
+    createdAt: now(),
+    updatedAt: touched(),
+  },
+  (t) => [
+    uniqueIndex('issues_volume_uq').on(t.journalId, t.volume, t.number),
+    index('issues_journal_idx').on(t.journalId, t.status),
+  ],
+)
+
 /* ================================================================== *
  * PEOPLE AND ACCESS
  * ================================================================== */
 
+/**
+ * People are platform-wide. This table has no journal_id on purpose: the same
+ * person reviews for more than one journal. What they may do inside a journal
+ * lives on memberships. Better Auth owns name, email, emailVerified, image,
+ * and the password on accounts. givenName and familyName are ours.
+ */
 export const users = pgTable(
   'users',
   {
     id: uuid('id').primaryKey().defaultRandom(),
+    name: text('name').notNull(),
     email: text('email').notNull(),
+    emailVerified: boolean('email_verified').notNull().default(false),
+    /** When the address was actually confirmed. The boolean is what Better Auth reads. */
     emailVerifiedAt: timestamp('email_verified_at', { withTimezone: true }),
+    image: text('image'),
     givenName: text('given_name').notNull(),
     familyName: text('family_name').notNull(),
     orcid: varchar('orcid', { length: 19 }),
@@ -201,6 +294,64 @@ export const users = pgTable(
     updatedAt: touched(),
   },
   (t) => [uniqueIndex('users_email_uq').on(t.email), uniqueIndex('users_orcid_uq').on(t.orcid)],
+)
+
+/** Better Auth session. Global, like users. Not tenant-scoped. */
+export const sessions = pgTable(
+  'sessions',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
+    token: text('token').notNull(),
+    ipAddress: text('ip_address'),
+    userAgent: text('user_agent'),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    createdAt: now(),
+    updatedAt: touched(),
+  },
+  (t) => [uniqueIndex('sessions_token_uq').on(t.token), index('sessions_user_idx').on(t.userId)],
+)
+
+/** One row per sign-in method: password, ORCID, anything linked later. */
+export const accounts = pgTable(
+  'accounts',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    accountId: text('account_id').notNull(),
+    providerId: text('provider_id').notNull(),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    accessToken: text('access_token'),
+    refreshToken: text('refresh_token'),
+    idToken: text('id_token'),
+    accessTokenExpiresAt: timestamp('access_token_expires_at', { withTimezone: true }),
+    refreshTokenExpiresAt: timestamp('refresh_token_expires_at', { withTimezone: true }),
+    scope: text('scope'),
+    password: text('password'),
+    createdAt: now(),
+    updatedAt: touched(),
+  },
+  (t) => [
+    index('accounts_user_idx').on(t.userId),
+    uniqueIndex('accounts_provider_uq').on(t.providerId, t.accountId),
+  ],
+)
+
+/** Email verification and password reset tokens. Global. */
+export const verifications = pgTable(
+  'verifications',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    identifier: text('identifier').notNull(),
+    value: text('value').notNull(),
+    expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
+    createdAt: now(),
+    updatedAt: touched(),
+  },
+  (t) => [index('verifications_identifier_idx').on(t.identifier)],
 )
 
 /**
@@ -298,6 +449,9 @@ export const manuscripts = pgTable(
 
     submittedById: uuid('submitted_by_id').notNull().references(() => users.id),
     handlingEditorId: uuid('handling_editor_id').references(() => users.id),
+    issueId: uuid('issue_id').references(() => issues.id),
+    firstPage: integer('first_page'),
+    lastPage: integer('last_page'),
 
     /**
      * THE IMPORTANT COLUMN. Written once, on draft -> submitted, by freezePolicy().
@@ -496,7 +650,8 @@ export const charges = pgTable(
     /** Copied from the policy snapshot, never from live settings. */
     amountMinor: integer('amount_minor').notNull(),
     currency: varchar('currency', { length: 3 }).notNull(),
-    status: varchar('status', { length: 16 }).notNull().default('pending'),
+    status: chargeStatus('status').notNull().default('pending'),
+    channel: varchar('channel', { length: 32 }),
     waivedById: uuid('waived_by_id').references(() => users.id),
     waiverReason: text('waiver_reason'),
     paystackReference: text('paystack_reference'),
@@ -504,6 +659,93 @@ export const charges = pgTable(
     createdAt: now(),
   },
   (t) => [uniqueIndex('charges_manuscript_uq').on(t.manuscriptId)],
+)
+
+/* ================================================================== *
+ * PRODUCTION, NOTIFICATIONS, JOBS, DOI
+ * ================================================================== */
+
+export const productionTasks = pgTable(
+  'production_tasks',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    journalId: uuid('journal_id')
+      .notNull()
+      .references(() => journals.id),
+    manuscriptId: uuid('manuscript_id')
+      .notNull()
+      .references(() => manuscripts.id),
+    stage: productionStage('stage').notNull().default('copyediting'),
+    assigneeId: uuid('assignee_id').references(() => users.id),
+    createdAt: now(),
+    updatedAt: touched(),
+  },
+  (t) => [uniqueIndex('production_manuscript_uq').on(t.manuscriptId)],
+)
+
+/**
+ * Append-only deposit attempts. The latest row for a manuscript is the
+ * current state. A retraction does not delete the original registration.
+ */
+export const doiDeposits = pgTable(
+  'doi_deposits',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    journalId: uuid('journal_id')
+      .notNull()
+      .references(() => journals.id),
+    manuscriptId: uuid('manuscript_id')
+      .notNull()
+      .references(() => manuscripts.id),
+    doi: text('doi').notNull(),
+    state: doiDepositState('state').notNull(),
+    submissionId: text('submission_id'),
+    error: text('error'),
+    createdAt: now(),
+  },
+  (t) => [index('doi_deposits_manuscript_idx').on(t.manuscriptId, t.createdAt)],
+)
+
+export const notifications = pgTable(
+  'notifications',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    journalId: uuid('journal_id')
+      .notNull()
+      .references(() => journals.id),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => users.id),
+    kind: varchar('kind', { length: 32 }).notNull(),
+    title: text('title').notNull(),
+    /** Author-facing bodies must not name a reviewer. Callers are responsible. */
+    body: text('body').notNull(),
+    href: text('href').notNull(),
+    readAt: timestamp('read_at', { withTimezone: true }),
+    createdAt: now(),
+  },
+  (t) => [index('notifications_user_idx').on(t.userId, t.createdAt)],
+)
+
+/**
+ * Work that must not run inside a user's request: metadata scrubbing,
+ * reminder mail, similarity checks, Crossref deposit. A cron tick claims
+ * due rows. The request that enqueues one returns immediately.
+ */
+export const jobs = pgTable(
+  'jobs',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    journalId: uuid('journal_id').references(() => journals.id),
+    type: varchar('type', { length: 48 }).notNull(),
+    payload: jsonb('payload').$type<Record<string, unknown>>().notNull().default(sql`'{}'::jsonb`),
+    status: varchar('status', { length: 16 }).notNull().default('pending'),
+    runAt: timestamp('run_at', { withTimezone: true }).notNull().defaultNow(),
+    attempts: integer('attempts').notNull().default(0),
+    lastError: text('last_error'),
+    createdAt: now(),
+  },
+  (t) => [index('jobs_due_idx').on(t.status, t.runAt)],
 )
 
 /* ================================================================== *
@@ -604,6 +846,34 @@ export const reviewAssignmentsRelations = relations(reviewAssignments, ({ one })
  *   CREATE POLICY tenant_isolation ON manuscripts
  *     USING (journal_id = current_setting('app.journal_id', true)::uuid);
  *
- * Repeat for every table carrying journal_id. Platform admin work runs in a
- * separate connection role that bypasses the policy — and writes audit_log.
+ * Repeat for every table carrying journal_id. Do NOT enable this policy on
+ * users, sessions, accounts or verifications — those rows are platform-wide,
+ * and login cannot know the journal yet.
+ *
+ * Two lookups happen before the journal is known. They are safe only because
+ * the key is unguessable and, for Paystack, the signature was checked first.
+ * Give them their own policies rather than turning RLS off:
+ *
+ *   CREATE POLICY assignment_by_token ON review_assignments
+ *     USING (
+ *       journal_id = current_setting('app.journal_id', true)::uuid
+ *       OR access_token_hash = current_setting('app.review_token_hash', true)
+ *     );
+ *
+ *   CREATE POLICY charge_by_reference ON charges
+ *     USING (
+ *       journal_id = current_setting('app.journal_id', true)::uuid
+ *       OR paystack_reference = current_setting('app.paystack_reference', true)
+ *     );
+ *
+ *   CREATE POLICY own_memberships ON memberships
+ *     USING (
+ *       journal_id = current_setting('app.journal_id', true)::uuid
+ *       OR user_id = current_setting('app.user_id', true)::uuid
+ *       OR (journal_id IS NULL AND role = 'platform_admin'
+ *           AND user_id = current_setting('app.user_id', true)::uuid)
+ *     );
+ *
+ * Platform admin work runs in a separate connection role that bypasses the
+ * policy — and writes audit_log.
  * ================================================================== */

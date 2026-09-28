@@ -18,7 +18,9 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { useToast } from '@/components/ui/toast'
 import { PageHeader } from '@/components/shell/page-header'
-import { ISSUES, type IssueRecord } from '@/lib/mock-operations'
+import { Remote, useRemote } from '@/components/shell/remote'
+import { api, formatWhen } from '@/lib/api'
+import type { IssueRecord } from '@/lib/mock-operations'
 
 const STATUS: Record<IssueRecord['status'], { label: string; variant: 'secondary' | 'warning' | 'success' }> = {
   planning: { label: 'Planning', variant: 'secondary' },
@@ -26,8 +28,33 @@ const STATUS: Record<IssueRecord['status'], { label: string; variant: 'secondary
   published: { label: 'Published', variant: 'success' },
 }
 
+interface IssueRow {
+  id: string
+  volume: number
+  number: number
+  title: string | null
+  status: IssueRecord['status']
+  articleCount: number
+  targetDate: string | null
+  publishedAt: string | null
+}
+
+function toIssue(row: IssueRow): IssueRecord {
+  return {
+    id: row.id,
+    volume: row.volume,
+    number: row.number,
+    title: row.title,
+    status: row.status,
+    articleCount: row.articleCount ?? 0,
+    targetDate: row.targetDate ? formatWhen(row.targetDate) : '—',
+    publishedDate: row.publishedAt ? formatWhen(row.publishedAt) : null,
+  }
+}
+
 export function IssuesList() {
-  const [issues, setIssues] = React.useState(ISSUES)
+  const { data, error, loading, setData } = useRemote<IssueRow[]>('/issues')
+  const issues = (data ?? []).map(toIssue)
 
   const unpublished = issues.filter((i) => i.status !== 'published')
   const published = issues.filter((i) => i.status === 'published')
@@ -37,30 +64,40 @@ export function IssuesList() {
       <PageHeader
         title="Issues"
         description="Volumes and issues, and what is assigned to each."
-        actions={<NewIssueDialog onCreate={(i) => setIssues((list) => [i, ...list])} existing={issues} />}
+        actions={
+          <NewIssueDialog
+            existing={issues}
+            onCreate={async (input) => {
+              const created = await api<IssueRow>('/issues', { method: 'POST', body: JSON.stringify(input) })
+              setData((list) => [created, ...(list ?? [])])
+            }}
+          />
+        }
       />
-
+      <Remote loading={loading} error={error}>
       <section className="flex flex-col gap-3">
-        <h2 className="rule-label">In progress</h2>
+        <h2 className="text-muted-foreground text-[11px] font-medium tracking-wider uppercase">In progress</h2>
+        {unpublished.length === 0 && <p className="text-muted-foreground text-sm">No issue in progress.</p>}
         {unpublished.map((i) => (
-          <IssueRow key={i.id} issue={i} />
+          <IssueCard key={i.id} issue={i} />
         ))}
       </section>
 
       <section className="flex flex-col gap-3">
-        <h2 className="rule-label">Published</h2>
+        <h2 className="text-muted-foreground text-[11px] font-medium tracking-wider uppercase">Published</h2>
         {published.map((i) => (
-          <IssueRow key={i.id} issue={i} />
+          <IssueCard key={i.id} issue={i} />
         ))}
       </section>
+      </Remote>
     </div>
   )
 }
 
-function IssueRow({ issue }: { issue: IssueRecord }) {
+function IssueCard({ issue }: { issue: IssueRecord }) {
   const meta = STATUS[issue.status]
   return (
-    <article className="bg-card flex flex-wrap items-center gap-x-4 gap-y-2 border px-4 py-3">
+    <article className="bg-card flex flex-wrap items-center gap-x-4 gap-y-2 rounded-lg border px-4 py-3">
       <div className="min-w-0 flex-1">
         <p className="flex flex-wrap items-center gap-2">
           <span className="tnum font-medium">
@@ -86,36 +123,40 @@ function NewIssueDialog({
   onCreate,
   existing,
 }: {
-  onCreate: (i: IssueRecord) => void
+  onCreate: (input: { volume: number; number: number; title?: string; targetDate?: string }) => Promise<void>
   existing: IssueRecord[]
 }) {
   const latest = existing[0]
   const [open, setOpen] = React.useState(false)
-  const [volume, setVolume] = React.useState(String(latest.volume))
-  const [number, setNumber] = React.useState(String(latest.number + 1))
+  const [volume, setVolume] = React.useState(latest ? String(latest.volume) : '1')
+  const [number, setNumber] = React.useState(latest ? String(latest.number + 1) : '1')
   const [title, setTitle] = React.useState('')
   const [target, setTarget] = React.useState('')
+  const [pending, setPending] = React.useState(false)
   const toast = useToast()
 
   const clash = existing.some((i) => i.volume === Number(volume) && i.number === Number(number))
-  const valid = Number(volume) > 0 && Number(number) > 0 && target !== '' && !clash
+  const valid = Number(volume) > 0 && Number(number) > 0 && !clash
 
-  function submit(e: React.FormEvent) {
+  async function submit(e: React.FormEvent) {
     e.preventDefault()
     if (!valid) return
-    onCreate({
-      id: `new-${Date.now()}`,
-      volume: Number(volume),
-      number: Number(number),
-      title: title.trim() || null,
-      status: 'planning',
-      articleCount: 0,
-      targetDate: target,
-      publishedDate: null,
-    })
-    toast(`Volume ${volume}, Issue ${number} created`)
-    setTitle('')
-    setOpen(false)
+    setPending(true)
+    try {
+      await onCreate({
+        volume: Number(volume),
+        number: Number(number),
+        title: title.trim() || undefined,
+        targetDate: target || undefined,
+      })
+      toast(`Volume ${volume}, Issue ${number} created`)
+      setTitle('')
+      setOpen(false)
+    } catch (err) {
+      toast(err instanceof Error ? err.message : 'Could not create the issue')
+    } finally {
+      setPending(false)
+    }
   }
 
   return (
@@ -163,7 +204,7 @@ function NewIssueDialog({
             <Button type="button" variant="ghost" size="sm" onClick={() => setOpen(false)}>
               Cancel
             </Button>
-            <Button type="submit" size="sm" disabled={!valid}>
+            <Button type="submit" size="sm" disabled={!valid || pending}>
               Create issue
             </Button>
           </DialogFooter>

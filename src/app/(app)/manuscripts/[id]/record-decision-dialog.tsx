@@ -17,7 +17,7 @@ import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 import { useToast } from '@/components/ui/toast'
-import { REVIEWS } from '@/lib/mock-manuscript'
+import { api } from '@/lib/api'
 import type { ManuscriptStatus } from '@/lib/types'
 
 type Decision = 'accept' | 'minor_revision' | 'major_revision' | 'reject' | 'reject_with_resubmission'
@@ -26,8 +26,8 @@ const DECISIONS: { value: Decision; label: string; becomes: ManuscriptStatus }[]
   { value: 'accept', label: 'Accept', becomes: 'accepted' },
   { value: 'minor_revision', label: 'Minor revision', becomes: 'revision_requested' },
   { value: 'major_revision', label: 'Major revision', becomes: 'revision_requested' },
-  { value: 'reject', label: 'Reject', becomes: 'desk_rejected' },
-  { value: 'reject_with_resubmission', label: 'Reject, resubmission welcome', becomes: 'desk_rejected' },
+  { value: 'reject', label: 'Reject', becomes: 'rejected' },
+  { value: 'reject_with_resubmission', label: 'Reject, resubmission welcome', becomes: 'rejected' },
 ]
 
 const OPENING: Record<Decision, string> = {
@@ -41,34 +41,61 @@ const OPENING: Record<Decision, string> = {
     'We are unable to accept the manuscript in its present form, but we would welcome a substantially revised resubmission.',
 }
 
-/** Only the author-facing halves. The confidential comments must never appear here. */
-function draftLetter(decision: Decision) {
-  const body = REVIEWS.map((r, i) => `Reviewer ${i + 1}\n${r.toAuthor}`).join('\n\n')
-  return `Dear Dr. Balogun,\n\n${OPENING[decision]}\n\nThe reviewers' comments follow.\n\n${body}\n\nYours sincerely,\nDr. Adaeze Okonkwo\nHandling Editor`
-}
-
 export function RecordDecisionDialog({
+  manuscriptId,
+  reference,
   onDecide,
 }: {
+  manuscriptId: string
+  reference: string
   onDecide: (status: ManuscriptStatus, label: string) => void
 }) {
   const [open, setOpen] = React.useState(false)
   const [decision, setDecision] = React.useState<Decision>('major_revision')
-  const [letter, setLetter] = React.useState(() => draftLetter('major_revision'))
+  const [letter, setLetter] = React.useState(OPENING.major_revision)
   const [edited, setEdited] = React.useState(false)
+  const [pending, setPending] = React.useState(false)
   const toast = useToast()
+
+  React.useEffect(() => {
+    if (!open || edited) return
+    let cancel = false
+    api<{ letter: string }>(`/manuscripts/${manuscriptId}/decisions/draft`, {
+      method: 'POST',
+      body: JSON.stringify({ decision }),
+    })
+      .then((row) => {
+        if (!cancel) setLetter(row.letter)
+      })
+      .catch(() => {
+        if (!cancel) setLetter(OPENING[decision])
+      })
+    return () => {
+      cancel = true
+    }
+  }, [open, decision, edited, manuscriptId])
 
   function changeDecision(v: Decision) {
     setDecision(v)
-    // Regenerating would discard the editor's own words, so only redraft untouched letters.
-    if (!edited) setLetter(draftLetter(v))
+    if (!edited) setLetter(OPENING[v])
   }
 
-  function send() {
+  async function send() {
     const chosen = DECISIONS.find((d) => d.value === decision)!
-    onDecide(chosen.becomes, chosen.label)
-    toast(`Decision recorded — ${chosen.label.toLowerCase()}, letter sent to the author`)
-    setOpen(false)
+    setPending(true)
+    try {
+      await api(`/manuscripts/${manuscriptId}/decisions`, {
+        method: 'POST',
+        body: JSON.stringify({ decision, letterBody: letter }),
+      })
+      onDecide(chosen.becomes, chosen.label)
+      toast(`Decision recorded — ${chosen.label.toLowerCase()}, letter sent to the author`)
+      setOpen(false)
+    } catch (err) {
+      toast(err instanceof Error ? err.message : 'Could not record the decision')
+    } finally {
+      setPending(false)
+    }
   }
 
   return (
@@ -83,7 +110,7 @@ export function RecordDecisionDialog({
         <DialogHeader>
           <DialogTitle>Record a decision</DialogTitle>
           <DialogDescription>
-            UJER-2026-0147, round 1. Two reviews received of two required.
+            {reference}. The letter is drafted from the author-facing half of each review.
           </DialogDescription>
         </DialogHeader>
 
@@ -128,7 +155,7 @@ export function RecordDecisionDialog({
           <Button variant="ghost" size="sm" onClick={() => setOpen(false)}>
             Cancel
           </Button>
-          <Button size="sm" onClick={send} disabled={letter.trim().length < 40}>
+          <Button size="sm" onClick={() => void send()} disabled={pending || letter.trim().length < 20}>
             Send decision
           </Button>
         </DialogFooter>

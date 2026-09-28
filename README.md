@@ -47,6 +47,10 @@ src/
 network that can reach ui.shadcn.com. The primitives already here were written
 by hand because that host was unreachable during setup — same API, same layout.
 
+The server is documented in [`docs/backend`](docs/backend/README.md). Schema,
+policy, Better Auth, and the `/api/v1` routes live there. The screens still
+read the mock modules until each one is pointed at those routes.
+
 ## Conventions worth keeping
 
 **Colour encodes who is blocked, not progress.** In `manuscript-status.ts`:
@@ -70,34 +74,32 @@ references, day counts and scores.
 
 ## State
 
-Built, with placeholder data:
+The screens are a working prototype on placeholder data. The editorial API is
+real and unused by those screens: Postgres via Drizzle, Better Auth, tenant
+transactions, and a service per module. See [`docs/backend`](docs/backend/README.md).
+
+Built, with placeholder data in the UI:
 
 - App shell — sidebar, journal switcher, dark mode
 - Editor desk (`/desk`) — filterable queue, status pills, reviewer dots, staleness
 - Manuscript detail (`/manuscripts/[id]`) — side-by-side reviews with scored
   criteria, disagreement banner, fenced confidential comments, activity stream
-- `db/schema.ts` and `db/policy.ts` — complete, type-checked, not yet connected
+- Author, reviewer, production, DOI, charges, settings, and the public journal
 
-Nav items other than the desk will 404.
+`npm run dev` does not need a database. `GET /api/health` reports whether
+Postgres is configured.
 
 ## Next, in order
 
-1. **Reviewer screen.** The invitation lands on a token URL with no account:
-   accept/decline, read the anonymised PDF, fill the structured form. Autosave to
-   IndexedDB and flush when online. This screen decides whether reviewers come back.
-2. **Database.** Connect Postgres, generate migrations with drizzle-kit, write the
-   RLS policies from the template at the foot of `schema.ts`, seed from
-   `mock-data.ts`, then delete that file.
-3. **Auth.** Better Auth, plus signed reviewer tokens, plus ORCID through generic OIDC.
-4. **Submission wizard.** Extract title/authors/abstract from the upload and have the
-   author correct them. Resumable chunked uploads. Anonymised preview before submit.
-5. **Document pipeline.** Metadata scrubbing on ingest (`core.xml`, track-changes
-   attribution, comment authorship, PDF XMP), anonymised copy, PDF for annotation.
-   Run it in a worker, never in the request path.
-6. **Settings.** Render `policy.ts` as a form. Show `diffPolicy()` output as the
-   blast-radius warning before every save.
-7. **Public article pages.** Static, edge-cached, Highwire Press meta tags. Without
-   those, Google Scholar indexes you wrong and authors stop submitting.
+1. **Postgres.** `npm run db:generate`, `npm run db:migrate`, then apply the
+   row-level security policies at the foot of `src/db/schema.ts` before a
+   second journal is added. `npm run db:seed`.
+2. **Cut the shell over to Better Auth.** Replace `src/lib/session.tsx`. One
+   screen at a time, starting with the desk, which is `GET /api/v1/j/:slug/desk`.
+3. **Scrubber and similarity.** The jobs exist and fail closed. Reviewers are
+   not served a file until it is actually scrubbed.
+4. **Crossref and Paystack refunds.** XML is built. The HTTP calls are not
+   wired. Recording a refund does not move money.
 
 ## Open decisions
 

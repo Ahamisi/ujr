@@ -26,6 +26,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea'
 import { useToast } from '@/components/ui/toast'
 import { PageHeader } from '@/components/shell/page-header'
+import { api } from '@/lib/api'
 import { naira, type ChargeStatus, type Transaction } from '@/lib/mock-transactions'
 import { cn } from '@/lib/utils'
 
@@ -44,7 +45,13 @@ const CHANNEL: Record<string, string> = {
   ussd: 'USSD',
 }
 
-export function TransactionsTable({ transactions: initial }: { transactions: Transaction[] }) {
+export function TransactionsTable({
+  transactions: initial,
+  onChanged,
+}: {
+  transactions: Transaction[]
+  onChanged?: () => void
+}) {
   const [rows, setRows] = React.useState(initial)
   const [query, setQuery] = React.useState('')
   const [status, setStatus] = React.useState<'all' | ChargeStatus>('all')
@@ -89,18 +96,25 @@ export function TransactionsTable({ transactions: initial }: { transactions: Tra
     { value: naira(refunded), label: 'Refunded', note: 'Returned to authors' },
   ]
 
-  function waive() {
+  async function waive() {
     if (!waiveFor || reason.trim().length < 8) return
-    setRows((list) =>
-      list.map((t) =>
-        t.id === waiveFor.id
-          ? { ...t, status: 'waived' as const, waiverReason: reason.trim(), settledAt: '2026-09-14' }
-          : t,
-      ),
-    )
-    toast(`${waiveFor.reference} waived`)
-    setWaiveFor(null)
-    setReason('')
+    try {
+      await api(`/charges/${waiveFor.id}/waive`, {
+        method: 'POST',
+        body: JSON.stringify({ reason: reason.trim() }),
+      })
+      setRows((list) =>
+        list.map((t) =>
+          t.id === waiveFor.id ? { ...t, status: 'waived' as const, waiverReason: reason.trim() } : t,
+        ),
+      )
+      toast(`${waiveFor.reference} waived`)
+      setWaiveFor(null)
+      setReason('')
+      onChanged?.()
+    } catch (err) {
+      toast(err instanceof Error ? err.message : 'Could not waive the charge')
+    }
   }
 
   return (

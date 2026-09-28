@@ -5,6 +5,7 @@ export type ManuscriptStatus =
   | 'submitted'
   | 'desk_review'
   | 'desk_rejected'
+  | 'rejected'
   | 'reviewer_search'
   | 'under_review'
   | 'decision_pending'

@@ -16,7 +16,8 @@ import {
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { useToast } from '@/components/ui/toast'
-import { REVIEWERS, type ReviewerRecord } from '@/lib/mock-operations'
+import { api } from '@/lib/api'
+import type { ReviewerRecord } from '@/lib/mock-operations'
 import { cn } from '@/lib/utils'
 
 function rate(r: ReviewerRecord) {
@@ -29,7 +30,7 @@ export function InviteReviewerDialog({
   onOpenChange,
   subject,
 }: {
-  onInvite: (name: string) => void
+  onInvite: (reviewer: ReviewerRecord) => void | Promise<void>
   /** Controlled mode: no trigger is rendered, the caller owns the open state. */
   open?: boolean
   onOpenChange?: (open: boolean) => void
@@ -45,28 +46,75 @@ export function InviteReviewerDialog({
   )
   const [query, setQuery] = React.useState('')
   const [picked, setPicked] = React.useState<string | null>(null)
+  const [people, setPeople] = React.useState<ReviewerRecord[]>([])
   const toast = useToast()
+
+  React.useEffect(() => {
+    if (!open) return
+    let cancel = false
+    api<
+      {
+        id: string
+        name: string
+        affiliation: string | null
+        country: string | null
+        expertise: string[]
+        sharedReviewerPool: boolean
+        invited: number
+        completed: number
+        declined: number
+      }[]
+    >('/reviewers')
+      .then((rows) => {
+        if (cancel) return
+        setPeople(
+          rows.map((row) => ({
+            id: row.id,
+            name: row.name,
+            affiliation: row.affiliation ?? '',
+            country: row.country ?? '',
+            expertise: row.expertise ?? [],
+            invited: row.invited,
+            completed: row.completed,
+            declined: row.declined,
+            medianTurnaroundDays: null,
+            lastInvited: '—',
+            sharedPool: row.sharedReviewerPool,
+          })),
+        )
+      })
+      .catch(() => {
+        if (!cancel) setPeople([])
+      })
+    return () => {
+      cancel = true
+    }
+  }, [open])
 
   const results = React.useMemo(() => {
     const q = query.trim().toLowerCase()
-    return REVIEWERS.filter(
+    return people.filter(
       (r) =>
         q === '' ||
         r.name.toLowerCase().includes(q) ||
         r.expertise.some((e) => e.toLowerCase().includes(q)) ||
         r.affiliation.toLowerCase().includes(q),
     ).sort((a, b) => (rate(b) ?? -1) - (rate(a) ?? -1))
-  }, [query])
+  }, [people, query])
 
-  const chosen = REVIEWERS.find((r) => r.id === picked)
+  const chosen = people.find((r) => r.id === picked)
 
-  function send() {
+  async function send() {
     if (!chosen) return
-    onInvite(chosen.name)
-    toast(`Invitation sent to ${chosen.name}`)
-    setPicked(null)
-    setQuery('')
-    setOpen(false)
+    try {
+      await onInvite(chosen)
+      toast(`Invitation sent to ${chosen.name}`)
+      setPicked(null)
+      setQuery('')
+      setOpen(false)
+    } catch (err) {
+      toast(err instanceof Error ? err.message : 'Could not send the invitation')
+    }
   }
 
   return (

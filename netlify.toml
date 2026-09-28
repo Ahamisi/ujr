@@ -1,0 +1,18 @@
+# Next.js is detected automatically. Do not pin @netlify/plugin-nextjs.
+# Secrets stay in the Netlify UI: DATABASE_URL, BETTER_AUTH_SECRET,
+# BETTER_AUTH_URL, PUBLIC_SITE_URL, JOB_SECRET, REQUIRE_EMAIL_VERIFICATION.
+
+[build]
+  command = "npm run build"
+
+[build.environment]
+  NODE_VERSION = "22"
+  NETLIFY_NEXT_SKEW_PROTECTION = "true"
+
+[functions]
+  directory = "netlify/functions"
+
+# Drains the queue: reviewer reminders and any mail already queued.
+# Runs only on the production deploy. JOB_SECRET must match the site env.
+[functions."jobs-tick"]
+  schedule = "*/10 * * * *"

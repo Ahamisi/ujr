@@ -15,11 +15,23 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Textarea } from '@/components/ui/textarea'
 import { useToast } from '@/components/ui/toast'
+import {
+  Dialog,
+  DialogBody,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import { InviteReviewerDialog } from '@/components/journal/invite-reviewer-dialog'
 import { ReviewerTrack } from '@/components/journal/reviewer-track'
 import { SimilarityScore } from '@/components/journal/similarity-score'
 import { StatusBadge } from '@/components/journal/status-badge'
+import { api } from '@/lib/api'
+import { useSession } from '@/lib/session'
 import { NEEDS_ACTION, STATUS_META } from '@/lib/manuscript-status'
 import type { ManuscriptRow } from '@/lib/types'
 import { cn } from '@/lib/utils'
@@ -44,9 +56,13 @@ export function DeskTable({ manuscripts: initial }: { manuscripts: ManuscriptRow
   const [view, setView] = React.useState<View>('needs_you')
   const [manuscripts, setManuscripts] = React.useState(initial)
   const router = useRouter()
+  const { session } = useSession()
   const toast = useToast()
   /* Radix needs the dialog outside the menu, so the row being acted on is state. */
   const [inviteFor, setInviteFor] = React.useState<ManuscriptRow | null>(null)
+  const [rejectFor, setRejectFor] = React.useState<ManuscriptRow | null>(null)
+  const [rejectReason, setRejectReason] = React.useState('')
+  const [rejecting, setRejecting] = React.useState(false)
 
   const counts = React.useMemo(
     () => Object.fromEntries(VIEWS.map((v) => [v.id, manuscripts.filter(v.match).length])) as Record<View, number>,
@@ -164,19 +180,35 @@ export function DeskTable({ manuscripts: initial }: { manuscripts: ManuscriptRow
                         </DropdownMenuItem>
                         <DropdownMenuItem
                           onSelect={() => {
-                            setManuscripts((list) =>
-                              list.map((x) =>
-                                x.id === m.id ? { ...x, handlingEditor: 'A. Okonkwo' } : x,
-                              ),
-                            )
-                            toast(`${m.reference} assigned to you`)
+                            if (!session) return
+                            void api(`/manuscripts/${m.id}/assign`, {
+                              method: 'POST',
+                              body: JSON.stringify({ editorId: session.userId }),
+                            })
+                              .then(() => {
+                                setManuscripts((list) =>
+                                  list.map((row) => (row.id === m.id ? { ...row, handlingEditor: session.name } : row)),
+                                )
+                                toast(`${m.reference} assigned to you`)
+                              })
+                              .catch((err: unknown) => toast(err instanceof Error ? err.message : 'Could not assign this manuscript'))
                           }}
                         >
                           Assign handling editor
                         </DropdownMenuItem>
                         <DropdownMenuItem
                           disabled={m.reviewers.length === 0}
-                          onSelect={() => toast(`Reminder sent to ${m.reviewers.length} reviewer(s) on ${m.reference}`)}
+                          onSelect={() => {
+                            void api<{ reminded: number }>(`/manuscripts/${m.id}/remind`, { method: 'POST' })
+                              .then((result) =>
+                                toast(
+                                  result.reminded === 0
+                                    ? `No open review on ${m.reference}`
+                                    : `Reminder sent to ${result.reminded} reviewer${result.reminded === 1 ? '' : 's'} on ${m.reference}`,
+                                ),
+                              )
+                              .catch((err: unknown) => toast(err instanceof Error ? err.message : 'Could not send the reminder'))
+                          }}
                         >
                           Send a reminder
                         </DropdownMenuItem>
@@ -190,10 +222,8 @@ export function DeskTable({ manuscripts: initial }: { manuscripts: ManuscriptRow
                         <DropdownMenuItem
                           variant="destructive"
                           onSelect={() => {
-                            setManuscripts((list) =>
-                              list.map((x) => (x.id === m.id ? { ...x, status: 'desk_rejected' as const } : x)),
-                            )
-                            toast(`${m.reference} desk rejected — the author has been told`)
+                            setRejectReason('')
+                            setRejectFor(m)
                           }}
                         >
                           Desk reject
@@ -221,24 +251,26 @@ export function DeskTable({ manuscripts: initial }: { manuscripts: ManuscriptRow
         open={inviteFor !== null}
         onOpenChange={(open) => !open && setInviteFor(null)}
         subject={inviteFor?.reference}
-        onInvite={(name) => {
+        onInvite={async (reviewer) => {
           const target = inviteFor
           if (!target) return
+          const created = await api<{ dueAt: string }>(`/manuscripts/${target.id}/invitations`, {
+            method: 'POST',
+            body: JSON.stringify({ reviewerId: reviewer.id }),
+          })
           setManuscripts((list) =>
             list.map((x) =>
               x.id === target.id
                 ? {
                     ...x,
-                    status: x.status === 'reviewer_search' ? ('under_review' as const) : x.status,
                     reviewers: [
                       ...x.reviewers,
                       {
-                        id: `inv-${Date.now()}`,
-                        // Blinded label for the author; the real name is editor-only.
+                        id: reviewer.id,
                         displayName: `Reviewer ${x.reviewers.length + 1}`,
-                        realName: name,
+                        realName: reviewer.name,
                         status: 'invited' as const,
-                        dueAt: '2026-10-12',
+                        dueAt: created.dueAt,
                       },
                     ],
                   }
@@ -248,6 +280,57 @@ export function DeskTable({ manuscripts: initial }: { manuscripts: ManuscriptRow
           setInviteFor(null)
         }}
       />
+
+      <Dialog
+        open={rejectFor !== null}
+        onOpenChange={(open) => {
+          if (!open && !rejecting) setRejectFor(null)
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Desk reject {rejectFor?.reference}</DialogTitle>
+            <DialogDescription>The author is told, and the reason is stored on the manuscript.</DialogDescription>
+          </DialogHeader>
+          <DialogBody>
+            <Textarea
+              value={rejectReason}
+              onChange={(e) => setRejectReason(e.target.value)}
+              placeholder="Why this is not going out for review"
+              className="min-h-28"
+            />
+          </DialogBody>
+          <DialogFooter>
+            <Button variant="ghost" size="sm" onClick={() => setRejectFor(null)} disabled={rejecting}>
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              size="sm"
+              disabled={rejectReason.trim().length < 8 || rejecting}
+              onClick={() => {
+                if (!rejectFor) return
+                setRejecting(true)
+                void api(`/manuscripts/${rejectFor.id}/transition`, {
+                  method: 'POST',
+                  body: JSON.stringify({ to: 'desk_rejected', reason: rejectReason.trim() }),
+                })
+                  .then(() => {
+                    setManuscripts((list) =>
+                      list.map((row) => (row.id === rejectFor.id ? { ...row, status: 'desk_rejected' as const } : row)),
+                    )
+                    toast(`${rejectFor.reference} desk rejected. The author has been told.`)
+                    setRejectFor(null)
+                  })
+                  .catch((err: unknown) => toast(err instanceof Error ? err.message : 'Could not desk reject'))
+                  .finally(() => setRejecting(false))
+              }}
+            >
+              {rejecting ? 'Rejecting…' : 'Desk reject'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

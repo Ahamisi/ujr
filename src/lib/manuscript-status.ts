@@ -15,6 +15,7 @@ export const STATUS_META: Record<ManuscriptStatus, { label: string; variant: Bad
   submitted: { label: 'Submitted', variant: 'warning', blocking: 'Awaiting desk check' },
   desk_review: { label: 'Desk review', variant: 'warning', blocking: 'With the managing editor' },
   desk_rejected: { label: 'Desk rejected', variant: 'danger', blocking: 'Closed without review' },
+  rejected: { label: 'Rejected', variant: 'danger', blocking: 'Closed after review' },
   reviewer_search: { label: 'Finding reviewers', variant: 'warning', blocking: 'Editor is recruiting' },
   under_review: { label: 'Under review', variant: 'info', blocking: 'With reviewers' },
   decision_pending: { label: 'Decision due', variant: 'warning', blocking: 'Reviews are in — editor must decide' },

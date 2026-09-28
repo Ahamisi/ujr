@@ -9,6 +9,7 @@
  */
 
 import { z } from 'zod'
+import { DECLARATION_KEYS, DEFAULT_DECLARATIONS } from '@/lib/declarations'
 
 /* ------------------------------------------------------------------ *
  * Vocabulary
@@ -68,17 +69,7 @@ export const journalPolicySchema = z.object({
     maxKeywords: z.number().int().min(0).max(20),
     referenceStyle: z.string(),
     /** Declarations the corresponding author must affirm before submitting. */
-    requiredDeclarations: z.array(
-      z.enum([
-        'ethics_approval',
-        'conflict_of_interest',
-        'funding',
-        'data_availability',
-        'generative_ai_use',
-        'informed_consent',
-        'authorship_agreement',
-      ]),
-    ),
+    requiredDeclarations: z.array(z.enum(DECLARATION_KEYS)),
   }),
 
   similarity: z.object({
@@ -167,13 +158,7 @@ export const PLATFORM_DEFAULTS: JournalPolicy = {
     abstractWordLimit: 300,
     maxKeywords: 6,
     referenceStyle: 'IEEE',
-    requiredDeclarations: [
-      'conflict_of_interest',
-      'funding',
-      'data_availability',
-      'generative_ai_use',
-      'authorship_agreement',
-    ],
+    requiredDeclarations: DEFAULT_DECLARATIONS,
   },
   similarity: {
     enabled: true,
